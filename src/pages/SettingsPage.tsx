@@ -273,8 +273,8 @@ export default function SettingsPage() {
         username: userProfile.username || "",
         email: userProfile.email || "",
         role: userProfile.role || "",
-        departament: userProfile.departament || "",
-        aboutme: userProfile.aboutme || "",
+        departament: userProfile.department || "",
+        aboutme: userProfile.aboutMe|| "",
         location: userProfile.location || "",
       });
     }
@@ -291,8 +291,8 @@ export default function SettingsPage() {
         email: profile.email,
         role: profile.role,
         location: profile.location,
-        departament: profile.departament,
-        aboutme: profile.aboutme,
+        department: profile.departament,
+        aboutMe: profile.aboutme,
       }).unwrap();
 
       toast({

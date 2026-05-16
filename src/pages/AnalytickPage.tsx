@@ -40,7 +40,7 @@ import {
 import SideBar from "../components/SideBar";
 import TeamAnalytics from "../components/TeamAnalitycs";
 import type { TaskAnalitycs } from "../types/TeamType";
-import { useGetMyTaskQuery, useGetTasksQuery } from "../api/TaskApi";
+import { useGetMyTaskQuery } from "../api/TaskApi";
 import { getCurrentUserId } from "../utils/utils.user.id";
 import { useGetTeamQuery } from "../api/ProfileApi";
 import type { Profile } from "../types/ProfileType";

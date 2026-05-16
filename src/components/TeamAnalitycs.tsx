@@ -45,7 +45,7 @@ const TeamMemberCard = ({ member }: { member: TaskAnalitycs }) => {
   const svgBg = useColorModeValue("#F1F5F9", "#374151");
   const centerTextColor = useColorModeValue("gray.700", "gray.200");
   const barBg = useColorModeValue("gray.100", "gray.700");
-  const { data: tasks = [], isLoading: isTasksLoading } = useGetTasksQuery();
+  const { data: tasks = [] } = useGetTasksQuery();
   const totaltask = useMemo(() => {
     const safeTasks = tasks as Task[];
     return {
@@ -181,7 +181,7 @@ const TeamMemberCard = ({ member }: { member: TaskAnalitycs }) => {
     </Box>
   );
 };
-
+//@ts-ignore
 const TeamDonutChart = ({ members }: { members: TaskAnalitycs[] }) => {
   const tooltipBg = useColorModeValue("white", "gray.800");
   const tooltipBorder = useColorModeValue("gray.100", "gray.700");
@@ -190,7 +190,7 @@ const TeamDonutChart = ({ members }: { members: TaskAnalitycs[] }) => {
   const centerTextColor = useColorModeValue("gray.700", "gray.200");
   const centerSubtextColor = useColorModeValue("gray.500", "gray.400");
 
-  const { data: tasks = [], isLoading: isTasksLoading } = useGetTasksQuery();
+  const { data: tasks = []} = useGetTasksQuery();
   const totaltask = useMemo(() => {
     const safeTasks = tasks as Task[];
     return {
@@ -326,7 +326,7 @@ export default function TeamAnalytics({
   const legendBg = useColorModeValue("gray.50", "gray.700");
   const legendTextColor = useColorModeValue("gray.600", "gray.300");
 
-  const { data: tasks = [], isLoading: isTasksLoading } = useGetTasksQuery();
+  const { data: tasks = [] } = useGetTasksQuery();
   const totaltask = useMemo(() => {
     const safeTasks = tasks as Task[];
     return {

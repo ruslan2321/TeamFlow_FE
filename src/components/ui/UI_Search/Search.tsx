@@ -1,5 +1,5 @@
 import { Box, IconButton, Input, InputGroup, InputLeftElement } from '@chakra-ui/react'
-import React from 'react'
+
 import SearchIcon from '../../../Icon/SearchIcon'
 
 export default function Search() {

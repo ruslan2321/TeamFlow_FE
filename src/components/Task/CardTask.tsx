@@ -10,7 +10,7 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import { Calendar, Clock, AlertCircle } from "lucide-react";
+import {AlertCircle } from "lucide-react";
 import type { Task } from "../../types/TaskType";
 
 interface CardTaskProps {

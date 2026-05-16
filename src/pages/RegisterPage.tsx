@@ -1,9 +1,6 @@
 import {
-  Alert,
   Box,
   Button,
-  Checkbox,
-  Flex,
   FormControl,
   FormLabel,
   Grid,
@@ -19,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useToast } from "@chakra-ui/react";
-import { Link as RouterLink, useNavigate } from "react-router-dom";
+import {useNavigate } from "react-router-dom";
 import LockIcon from "../Icon/LockIocn";
 import EyeIconOff from "../Icon/EyeIconOff";
 import EyeIconOn from "../Icon/EyeIconOn";

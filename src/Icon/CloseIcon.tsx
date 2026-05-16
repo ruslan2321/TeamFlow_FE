@@ -1,5 +1,5 @@
 import { Icon, type IconProps } from "@chakra-ui/react";
-import React from "react";
+
 
 export default function CloseIcon(props: IconProps) {
   return (

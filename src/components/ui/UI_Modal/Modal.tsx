@@ -1,7 +1,7 @@
-import React, {  type FC } from 'react'
+import {  type FC } from 'react'
 import type { CustomModalProps } from './type'
 import CloseIcon from '../../../Icon/CloseIcon'
-import { Button, IconButton, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Text } from '@chakra-ui/react'
+import {  IconButton, Modal, ModalBody, ModalContent, ModalFooter, ModalHeader, Text } from '@chakra-ui/react'
 
 export const UI_Modal:FC<CustomModalProps> = ({contentBody, contentfooter, size, isOpen, onClose ,title}) =>  {
   return (

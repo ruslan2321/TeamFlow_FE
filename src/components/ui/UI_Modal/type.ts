@@ -1,4 +1,4 @@
-import type { ModalProps, ThemeComponentProps } from "@chakra-ui/react";
+
 import type { ReactNode } from "react";
 
 export interface CustomModalProps {

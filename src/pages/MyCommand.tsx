@@ -24,11 +24,10 @@ import {
 } from "../api/ProfileApi";
 import type { Profile } from "../types/ProfileType";
 import {
-  UserCard,
-  type TeamMember,
-} from "../components/MyCommandUser/UserCard";
+  UserCard } from "../components/MyCommandUser/UserCard";
 
-const getCurrentUserId = (): number | null => {
+  import  type {TeamMember} from "../types/TeamType"
+  const getCurrentUserId = (): number | null => {
   try {
     const raw = localStorage.getItem("user");
     if (raw) {
@@ -156,8 +155,6 @@ export const MyCommand = () => {
   const accentColor = "blue.500";
   const accentHover = "blue.600";
   const purpleAccent = "purple.500";
-  const pinkAccent = "pink.500";
-  const greenAccent = "green.500";
 
   // Тени
   const cardShadow = useColorModeValue(

@@ -162,7 +162,6 @@ const StatusMenu = React.memo(
     currentStatus,
     onStatusChange,
     isDisabled,
-    accentColor,
     hoverBg,
   }: {
     currentStatus: string;
