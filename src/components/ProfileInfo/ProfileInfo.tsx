@@ -3,7 +3,6 @@ import type { ProfileInfoProps } from "./type";
 import { useGetProfileQuery } from "../../api/ProfileApi";
 import { useNavigate } from "react-router-dom";
 //фото для теста
-import TestAvatar from '/test-avatar.png'
 import { getLastNameAndInitials } from "../../utils/utils.formateName";
 
 
@@ -20,7 +19,7 @@ export default function ProfileInfo({ id }: ProfileInfoProps) {
     <Box display={"flex"} alignItems={'center'} gap={"15px"} onClick={() => {navigate('/profile')}}>
       <Box>
        
-        <Avatar src={TestAvatar} cursor={"pointer"} />
+        <Avatar src={''} cursor={"pointer"} />
       </Box>
 
       <Box>
