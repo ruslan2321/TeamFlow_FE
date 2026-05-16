@@ -10,7 +10,7 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
-import {AlertCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import type { Task } from "../../types/TaskType";
 
 interface CardTaskProps {
@@ -127,7 +127,8 @@ export default function CardTask({ tasks }: CardTaskProps) {
     >
       {tasks.map((item, index) => {
         const status = STATUS_CONFIG[item.status] || DEFAULT_STATUS;
-
+        const safeTaskName =
+          typeof item.name_task === "string" ? item.name_task.trim() : "";
         return (
           <Box
             key={item.task_id}
@@ -218,7 +219,7 @@ export default function CardTask({ tasks }: CardTaskProps) {
                   >
                     <Avatar
                       size="xs"
-                      name={item.name_task || "Не назначено"}
+                      name={safeTaskName || "Не назначено"}
                       bg={cardBg}
                       border="2px solid"
                       borderColor={cardBg}

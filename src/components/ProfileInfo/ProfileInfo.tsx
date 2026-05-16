@@ -5,25 +5,28 @@ import { useNavigate } from "react-router-dom";
 //фото для теста
 import { getLastNameAndInitials } from "../../utils/utils.formateName";
 
-
-
 export default function ProfileInfo({ id }: ProfileInfoProps) {
   const { data, isLoading, error } = useGetProfileQuery(id);
+    const username = typeof data?.username === "string" ? data.username : "";
 
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   if (isLoading || error) return <></>;
 
-
-
   return (
-    <Box display={"flex"} alignItems={'center'} gap={"15px"} onClick={() => {navigate('/profile')}}>
+    <Box
+      display={"flex"}
+      alignItems={"center"}
+      gap={"15px"}
+      onClick={() => {
+        navigate("/profile");
+      }}
+    >
       <Box>
-       
-        <Avatar src={''} cursor={"pointer"} />
+         <Avatar name={username} />
       </Box>
 
       <Box>
-        <Text fontSize={14}>{getLastNameAndInitials(data?.username)}</Text>
+        <Text fontSize={14}>{getLastNameAndInitials(username)}</Text>
       </Box>
     </Box>
   );
