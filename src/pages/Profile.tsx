@@ -31,7 +31,7 @@ import {
   FiX,
   FiCamera,
 } from "react-icons/fi";
-import SideBar from "../components/SideBar";
+import AppPageLayout from "../components/layout/AppPageLayout";
 import {
   useGetProfileQuery,
   useUpdateProfileMutation,
@@ -574,22 +574,21 @@ export default function ProfilePage() {
     : undefined;
 
   return (
-    <Flex h="100vh" w="100%" bg={bgPage}>
-      <Box
-        w={{ base: "full", md: "64" }}
-        flexShrink={0}
-        h="full"
-        bg={bgCard}
-        borderRight="1px"
-        borderColor={borderColor}
-      >
-        <SideBar />
-      </Box>
-
+    <AppPageLayout bg={bgPage}>
       <Box flex="1" overflowY="auto" p={{ base: 4, md: 6, lg: 8 }}>
-        <Box maxW="1100px" mx="auto">
-          <Flex align="center" justify="space-between" mb={6}>
-            <Text fontSize="2xl" fontWeight="bold" color={headingColor}>
+        <Box maxW="1100px" mx="auto" w="full">
+          <Flex
+            align="center"
+            justify="space-between"
+            mb={6}
+            gap={3}
+            flexWrap="wrap"
+          >
+            <Text
+              fontSize={{ base: "xl", md: "2xl" }}
+              fontWeight="bold"
+              color={headingColor}
+            >
               Профиль
             </Text>
             <Badge
@@ -842,7 +841,7 @@ export default function ProfilePage() {
                 </Box>
               )}
 
-              <SimpleGrid columns={2} spacing={3}>
+              <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={3}>
                 <StatCard
                   label="В работе"
                   value={inProgress}
@@ -949,6 +948,6 @@ export default function ProfilePage() {
           </Box>
         </Box>
       </Box>
-    </Flex>
+    </AppPageLayout>
   );
 }

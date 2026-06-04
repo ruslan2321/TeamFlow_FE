@@ -11,14 +11,13 @@ import {
   useDisclosure,
 } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
-import SideBar from "../components/SideBar";
+import AppPageLayout from "../components/layout/AppPageLayout";
 import { useState } from "react";
 import { useGetTasksQuery } from "../api/TaskApi";
 import type { Task } from "../types/TaskType";
 import { tabStyles } from "../theme/ThemTabs";
 import { AddTask } from "../components/Task/Modal/AddTaskModal";
 import CardTask from "../components/Task/CardTask";
-
 
 export default function CardTaskPage() {
   const { data: tasks = [] } = useGetTasksQuery();
@@ -32,18 +31,8 @@ export default function CardTaskPage() {
 
   const { isOpen, onOpen, onClose } = useDisclosure();
   return (
-    <Flex h="100vh" w="100%" bg="gray.50" _dark={{ bg: "gray.900" }}>
-      <Box w={{ base: "full", md: "64" }} flexShrink={0} h="full">
-        <SideBar />
-      </Box>
-
-      <Box
-        flex="1"
-        display="flex"
-        flexDirection="column"
-        overflow="hidden"
-        h="full"
-      >
+    <AppPageLayout bg="gray.50" _dark={{ bg: "gray.900" }}>
+      <Box display="flex" flexDirection="column" h="full" overflow="hidden">
         <Flex
           align="center"
           justify="space-between"
@@ -75,11 +64,13 @@ export default function CardTaskPage() {
             </Text>
           </Box>
         </Flex>
+
         <Box
           flex="1"
           overflowY="auto"
           px={{ base: 4, md: 8 }}
           py={6}
+          pb={{ base: 24, md: 6 }}
           css={{
             "&::-webkit-scrollbar": { width: "8px" },
             "&::-webkit-scrollbar-track": { bg: "transparent" },
@@ -91,12 +82,18 @@ export default function CardTaskPage() {
           }}
         >
           <Tabs variant="custom" index={tabIndex} onChange={setTabIndex}>
-            <TabList style={{ display: "flex", gap: "10px", paddingBottom: 4 }}>
-              <Tab sx={{ ...tabStyles.myTasks }}>Все задачи</Tab>
-              <Tab sx={{ ...tabStyles.toDevelopment }}>К разработке</Tab>
-              <Tab sx={tabStyles.inDevelopment}>В разработке</Tab>
-              <Tab sx={tabStyles.toTesting}>К тестированию</Tab>
-            </TabList>
+            <Box
+              overflowX="auto"
+              css={{ "&::-webkit-scrollbar": { display: "none" } }}
+              pb={2}
+            >
+              <TabList minW="max-content" display="flex" gap="10px" pb={1}>
+                <Tab sx={tabStyles.myTasks}>Все задачи</Tab>
+                <Tab sx={tabStyles.toDevelopment}>К разработке</Tab>
+                <Tab sx={tabStyles.inDevelopment}>В разработке</Tab>
+                <Tab sx={tabStyles.toTesting}>К тестированию</Tab>
+              </TabList>
+            </Box>
 
             <TabPanels>
               <TabPanel px={0} py={4}>
@@ -114,19 +111,28 @@ export default function CardTaskPage() {
             </TabPanels>
           </Tabs>
         </Box>
-        <Flex p={10} justifyContent={"end"}>
+
+        <Box
+          position="fixed"
+          bottom={{ base: 6, md: 4 }}
+          right={{ base: 4, md: 4 }}
+          zIndex={10}
+        >
           <IconButton
-            aria-label=""
-            _hover={{ bg: "green", transform: "scale(1.2)" }}
+            aria-label="Добавить задачу"
             icon={<BsPlus />}
-            color={"white"}
-            bg={"green"}
-            rounded={90}
+            bg="green.500"
+            color="white"
+            size="lg"
+            borderRadius="full"
+            boxShadow="lg"
             onClick={onOpen}
+            _hover={{ bg: "green.600", transform: "scale(1.1)" }}
+            transition="all 0.2s ease"
           />
-        </Flex>
+        </Box>
       </Box>
       <AddTask isOpen={isOpen} onClose={onClose} />
-    </Flex>
+    </AppPageLayout>
   );
 }

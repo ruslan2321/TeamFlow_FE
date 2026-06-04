@@ -28,16 +28,15 @@ import LoginIcon from "../Icon/LoginIcon";
 
 export default function Login() {
   const [loginMutation, { isLoading }] = useLoginMutation();
-  const [passwordShow, setpasswordShow] = useState(false);
+  const [passwordShow, setPasswordShow] = useState(false);
   const navigate = useNavigate();
   const toast = useToast();
   const [formData, setFormData] = useState({
     login: "",
     password: "",
   });
-  const PasswordVisible = () => {
-    setpasswordShow((prev) => !prev);
-  };
+
+  const togglePasswordVisibility = () => setPasswordShow((prev) => !prev);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -50,15 +49,13 @@ export default function Login() {
       localStorage.setItem("authToken", res.token);
       if (res.token) {
         const { token, ...userData } = res;
-
         localStorage.setItem("user", JSON.stringify(userData));
         toast({
           title: "Вход успешен",
-          description: "",
           position: "top",
           status: "success",
           duration: 3000,
-          isClosable: false,
+          isClosable: true,
         });
         navigate("/task");
       }
@@ -69,56 +66,80 @@ export default function Login() {
         description: "Неверный логин или пароль",
         status: "error",
         duration: 3000,
-        isClosable: false,
+        isClosable: true,
       });
     }
   };
 
-  if (isLoading) {
-    return (
-      <Box
-        position="fixed"
-        top={0}
-        left={0}
-        w="100vw"
-        h="100vh"
-        bg="rgba(255, 255, 255, 0.8)"
-        zIndex="9999"
-        display="flex"
-        alignItems="center"
-        justifyContent="center"
-      >
-        <Spinner color="#0099FF" size={"lg"} />
-      </Box>
-    );
-  }
-
   return (
-    <Grid gridTemplateColumns="50% 50%">
+    <Grid
+      gridTemplateColumns={{ base: "1fr", md: "1fr 1fr" }}
+      minH="100vh"
+      overflow="hidden"
+    >
+      {isLoading && (
+        <Box
+          position="fixed"
+          inset={0}
+          bg="rgba(255, 255, 255, 0.8)"
+          zIndex={9999}
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
+        >
+          <Spinner color="#0099FF" size="lg" />
+        </Box>
+      )}
+      {/* Левая колонка: Форма */}
       <Box
         display="flex"
         flexDirection="column"
-        justifyContent="center"
+        justifyContent={{ base: "flex-start", md: "center" }}
         alignItems="center"
-        gap="1.5rem"
-        px="8"
+        gap={6}
+        px={{ base: 4, md: 8 }}
+        py={{ base: 8, md: 0 }}
+        overflowY="auto"
+        minH="100vh"
+        bg="white"
       >
-        <Box display="flex" flexDirection="column" alignItems="start" gap="8px">
-          <Box display="flex" alignItems="center" gap="0.5rem">
-            <Image src="/icon.png" objectFit="contain" />
-            <Heading fontWeight={"400"}>TeamFlow</Heading>
+        {/* Заголовок */}
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems={{ base: "center", md: "start" }}
+          gap={2}
+          w="full"
+          maxW="sm"
+        >
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={2}
+            justifyContent={{ base: "center", md: "flex-start" }}
+          >
+            <Image src="/icon.png" objectFit="contain" boxSize={8} />
+            <Heading fontWeight="400" fontSize={{ base: "2xl", md: "3xl" }}>
+              TeamFlow
+            </Heading>
           </Box>
-          <Text fontSize="lg" color="gray.600" textAlign="center" maxW="24rem">
+          <Text
+            fontSize="lg"
+            color="gray.600"
+            textAlign={{ base: "center", md: "left" }}
+            maxW="24rem"
+          >
             Управляй своими задачами легко!
           </Text>
         </Box>
 
-        <Box as="form" onSubmit={handleSubmit} maxW="20rem" w="full">
-          <VStack spacing="1rem" align="stretch">
+        {/* Форма */}
+        <Box as="form" onSubmit={handleSubmit} w="full" maxW="sm">
+          <VStack spacing={4} align="stretch">
             <FormControl>
               <FormLabel color="black">Логин:</FormLabel>
               <InputGroup>
-                <InputLeftElement>
+                <InputLeftElement pointerEvents="none">
                   <LoginIcon />
                 </InputLeftElement>
                 <Input
@@ -126,6 +147,7 @@ export default function Login() {
                   value={formData.login}
                   onChange={handleChange}
                   placeholder="Введите логин"
+                  size="lg"
                 />
               </InputGroup>
             </FormControl>
@@ -133,45 +155,57 @@ export default function Login() {
             <FormControl>
               <FormLabel color="black">Пароль:</FormLabel>
               <InputGroup>
-                <InputLeftElement>
+                <InputLeftElement pointerEvents="none">
                   <LockIcon />
                 </InputLeftElement>
                 <Input
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  type={passwordShow ? "password" : "text"}
+                  type={passwordShow ? "text" : "password"}
                   placeholder="Введите пароль"
+                  size="lg"
                 />
                 <InputRightElement>
-                  {passwordShow ? (
-                    <EyeIconOff onClick={PasswordVisible} />
-                  ) : (
-                    <EyeIconOn onClick={PasswordVisible} />
-                  )}
+                  <Button
+                    variant="ghost"
+                    p={0}
+                    h="full"
+                    minW="auto"
+                    onClick={togglePasswordVisibility}
+                    _hover={{ bg: "transparent" }}
+                  >
+                    {passwordShow ? <EyeIconOff /> : <EyeIconOn />}
+                  </Button>
                 </InputRightElement>
               </InputGroup>
             </FormControl>
 
-            <Flex align="center" gap="0.5rem">
-              <Checkbox borderRadius="md" />
-              <FormLabel m={0} fontSize="sm" color="gray.700">
-                Запомнить меня
-              </FormLabel>
+            <Flex
+              align="center"
+              justifyContent="space-between"
+              w="full"
+              flexWrap="wrap"
+              gap={2}
+            >
+              <Flex align="center" gap={2}>
+                <Checkbox borderRadius="md" />
+                <FormLabel m={0} fontSize="sm" color="gray.700">
+                  Запомнить меня
+                </FormLabel>
+              </Flex>
               <Link
                 as={RouterLink}
-                to={"/resetpass"}
-                textAlign={"end"}
-                w={"11rem"}
+                to="/resetpass"
                 fontSize="sm"
                 color="blue.500"
                 cursor="pointer"
                 _hover={{ textDecoration: "underline" }}
-                alignSelf="flex-end"
               >
                 Забыл пароль?
               </Link>
             </Flex>
+
             <Button
               type="submit"
               w="full"
@@ -185,33 +219,39 @@ export default function Login() {
             </Button>
           </VStack>
         </Box>
+
         <Link
           as={RouterLink}
-          to={"/register"}
-          w={"11rem"}
-          fontSize="16px"
+          to="/register"
+          fontSize="md"
           color="#006AFF"
           cursor="pointer"
-          _hover={{ textDecor: undefined }}
+          _hover={{ textDecoration: "underline" }}
         >
           Создать аккаунт
         </Link>
-        <Text>
-          Ознакомится с <span style={{ color: "blue" }}>политикой сайта </span>
+
+        <Text fontSize="sm" color="gray.500" textAlign="center" px={2}>
+          Ознакомьтесь с{" "}
+          <Text
+            as="span"
+            color="blue.500"
+            cursor="pointer"
+            _hover={{ textDecoration: "underline" }}
+          >
+            политикой сайта
+          </Text>
         </Text>
       </Box>
 
-      <Box position="relative">
+      {/* Правая колонка: Изображение (скрыто на мобильных) */}
+      <Box
+        display={{ base: "none", md: "block" }}
+        position="relative"
+        h="100vh"
+      >
         <Image src="/bgl.png" h="100vh" w="full" objectFit="cover" />
-        <Box
-          position="absolute"
-          top="0"
-          left="0"
-          w="full"
-          h="full"
-          bg="white"
-          opacity="0.3"
-        />
+        <Box position="absolute" inset={0} bg="white" opacity={0.3} />
       </Box>
     </Grid>
   );

@@ -489,7 +489,7 @@ export default function TeamAnalytics({
             <TeamDonutChart members={members} />
 
             {/* ✅ Добавлен 4-й стат для "К тестированию" */}
-            <SimpleGrid columns={4} spacing={3} mt={4}>
+            <SimpleGrid columns={{ base: 2, md: 4 }} spacing={3} mt={4}>
               {/* ✅ Готово */}
               <Stat
                 textAlign="center"

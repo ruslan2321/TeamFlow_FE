@@ -16,7 +16,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useToast } from "@chakra-ui/react";
-import {useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import LockIcon from "../Icon/LockIocn";
 import EyeIconOff from "../Icon/EyeIconOff";
 import EyeIconOn from "../Icon/EyeIconOn";
@@ -31,17 +31,17 @@ export default function Register() {
   const [add] = useAddUserMutation();
   const [sendemail, { isLoading }] = useSendEmailMutation();
   const toast = useToast();
-  const [passwordShow, setpasswordShow] = useState(true);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
+
   const [formData, setFormData] = useState<Omit<Profile, "id">>({
     username: "",
     email: "",
     login: "",
     password: "",
   });
-  const PasswordVisible = () => {
-    setpasswordShow((prev) => !prev);
-  };
+
+  const togglePasswordVisibility = () => setIsPasswordVisible((prev) => !prev);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -49,87 +49,114 @@ export default function Register() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     try {
       await add(formData).unwrap();
-      await sendemail({
-        email: formData.email,
-      }).unwrap();
+      await sendemail({ email: formData.email }).unwrap();
       toast({
         title: "Аккаунт создан",
-        description: "",
         status: "success",
         duration: 3000,
-        isClosable: false,
+        isClosable: true,
       });
       navigate("/");
     } catch {
       toast({
-        title: "Произошла ошибка при создание аккаунта",
-        description: "",
+        title: "Ошибка регистрации",
+        description: "Пожалуйста, проверьте данные и попробуйте снова",
         status: "error",
         duration: 3000,
-        isClosable: false,
+        isClosable: true,
       });
     }
   };
 
   return (
-    <Grid gridTemplateColumns="50% 50%">
-      {isLoading ? (
+    <Grid
+      gridTemplateColumns={{ base: "1fr", md: "1fr 1fr" }}
+      minH="100vh"
+      overflow="hidden"
+    >
+      {/* Оверлей загрузки */}
+      {isLoading && (
         <Box
           position="fixed"
-          top={0}
-          left={0}
-          w="100vw"
-          h="100vh"
+          inset={0}
           bg="rgba(255, 255, 255, 0.8)"
-          zIndex="9999"
+          zIndex={9999}
           display="flex"
           alignItems="center"
           justifyContent="center"
         >
-          <Spinner color="#0099FF" size={"lg"} />
+          <Spinner color="#0099FF" size="lg" />
         </Box>
-      ) : null}
+      )}
+
+      {/* Левая колонка: Форма */}
       <Box
         display="flex"
         flexDirection="column"
-        justifyContent="center"
+        justifyContent={{ base: "flex-start", md: "center" }}
         alignItems="center"
-        gap="1.5rem"
-        px="8"
+        gap={6}
+        px={{ base: 4, md: 8 }}
+        py={{ base: 8, md: 0 }}
+        overflowY="auto"
+        minH="100vh"
+        bg="white"
       >
-        <Box display="flex" flexDirection="column" alignItems="start" gap="8px">
-          <Box display="flex" alignItems="start" gap="0.5rem">
-            <Image src="/icon.png" objectFit="contain" />
-            <Heading fontWeight={"400"}>TeamFlow</Heading>
+        {/* Заголовок */}
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems={{ base: "center", md: "start" }}
+          gap={2}
+          w="full"
+          maxW="sm"
+        >
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={2}
+            justifyContent={{ base: "center", md: "flex-start" }}
+          >
+            <Image src="/icon.png" objectFit="contain" boxSize={8} />
+            <Heading fontWeight="400" fontSize={{ base: "2xl", md: "3xl" }}>
+              TeamFlow
+            </Heading>
           </Box>
-          <Text fontSize="lg" color="gray.600" textAlign="center" maxW="24rem">
+          <Text
+            fontSize="lg"
+            color="gray.600"
+            textAlign={{ base: "center", md: "left" }}
+            maxW="24rem"
+          >
             Управляй своими задачами легко!
           </Text>
-          <Text textAlign={"start"} w={"20rem"} fontSize={"22px"}>
+          <Text
+            fontSize={{ base: "xl", md: "22px" }}
+            textAlign={{ base: "center", md: "start" }}
+            fontWeight="600"
+          >
             Создание аккаунта
           </Text>
           <Text
-            textAlign={"start"}
-            w={"20rem"}
-            fontSize={"15px"}
-            color={"#000000"}
-            opacity={0.5}
+            fontSize="sm"
+            color="gray.600"
+            textAlign={{ base: "center", md: "start" }}
           >
             создайте аккаунт для доступа к TeamFlow
           </Text>
         </Box>
 
-        <Box as="form" onSubmit={handleSubmit} maxW="20rem" w="full">
-          <VStack spacing="1rem" align="stretch">
+        {/* Форма */}
+        <Box as="form" onSubmit={handleSubmit} w="full" maxW="sm">
+          <VStack spacing={4} align="stretch">
             <FormControl>
-              <FormLabel color="black" opacity={0.5}>
+              <FormLabel color="gray.700" fontSize="sm">
                 Введите ваше ФИО:
               </FormLabel>
               <InputGroup>
-                <InputLeftElement>
+                <InputLeftElement pointerEvents="none">
                   <PeopleLoginIcon />
                 </InputLeftElement>
                 <Input
@@ -139,15 +166,18 @@ export default function Register() {
                   type="text"
                   placeholder="Введите ваше ФИО"
                   required
+                  size="lg"
+                  autoComplete="name"
                 />
               </InputGroup>
             </FormControl>
+
             <FormControl>
-              <FormLabel color="black" opacity={0.5}>
+              <FormLabel color="gray.700" fontSize="sm">
                 Email:
               </FormLabel>
               <InputGroup>
-                <InputLeftElement>
+                <InputLeftElement pointerEvents="none">
                   <EmailIcon />
                 </InputLeftElement>
                 <Input
@@ -155,17 +185,20 @@ export default function Register() {
                   value={formData.email}
                   onChange={handleChange}
                   type="email"
-                  placeholder="Введите вашу поту"
+                  placeholder="Введите вашу почту"
                   required
+                  size="lg"
+                  autoComplete="email"
                 />
               </InputGroup>
             </FormControl>
+
             <FormControl>
-              <FormLabel color="black" opacity={0.5}>
+              <FormLabel color="gray.700" fontSize="sm">
                 Логин:
               </FormLabel>
               <InputGroup>
-                <InputLeftElement>
+                <InputLeftElement pointerEvents="none">
                   <LoginIcon />
                 </InputLeftElement>
                 <Input
@@ -175,35 +208,48 @@ export default function Register() {
                   onChange={handleChange}
                   placeholder="Введите логин"
                   required
+                  size="lg"
+                  autoComplete="username"
                 />
               </InputGroup>
             </FormControl>
 
             <FormControl>
-              <FormLabel color="black" opacity={0.5}>
+              <FormLabel color="gray.700" fontSize="sm">
                 Пароль:
               </FormLabel>
               <InputGroup>
-                <InputLeftElement>
+                <InputLeftElement pointerEvents="none">
                   <LockIcon />
                 </InputLeftElement>
                 <Input
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  type={passwordShow ? "password" : "text"}
+                  type={isPasswordVisible ? "text" : "password"}
                   placeholder="Введите пароль"
                   required
+                  size="lg"
+                  autoComplete="new-password"
                 />
                 <InputRightElement>
-                  {passwordShow ? (
-                    <EyeIconOff onClick={PasswordVisible} />
-                  ) : (
-                    <EyeIconOn onClick={PasswordVisible} />
-                  )}
+                  <Button
+                    variant="ghost"
+                    p={0}
+                    h="full"
+                    minW="auto"
+                    onClick={togglePasswordVisibility}
+                    _hover={{ bg: "transparent" }}
+                    aria-label={
+                      isPasswordVisible ? "Скрыть пароль" : "Показать пароль"
+                    }
+                  >
+                    {isPasswordVisible ? <EyeIconOff /> : <EyeIconOn />}
+                  </Button>
                 </InputRightElement>
               </InputGroup>
             </FormControl>
+
             <Button
               type="submit"
               w="full"
@@ -212,27 +258,34 @@ export default function Register() {
               size="lg"
               _hover={{ bg: "#5348d8" }}
               boxShadow="md"
+              mt={2}
             >
               Зарегистрироваться
             </Button>
           </VStack>
         </Box>
-        <Text>
-          Ознакомится с <span style={{ color: "blue" }}>политикой сайта </span>
+
+        <Text fontSize="sm" color="gray.500" textAlign="center" px={2}>
+          Ознакомьтесь с{" "}
+          <Text
+            as="span"
+            color="blue.500"
+            cursor="pointer"
+            _hover={{ textDecoration: "underline" }}
+          >
+            политикой сайта
+          </Text>
         </Text>
       </Box>
 
-      <Box position="relative">
+      {/* Правая колонка: Изображение (скрыто на мобильных) */}
+      <Box
+        display={{ base: "none", md: "block" }}
+        position="relative"
+        h="100vh"
+      >
         <Image src="/bgl.png" h="100vh" w="full" objectFit="cover" />
-        <Box
-          position="absolute"
-          top="0"
-          left="0"
-          w="full"
-          h="full"
-          bg="white"
-          opacity="0.3"
-        />
+        <Box position="absolute" inset={0} bg="white" opacity={0.3} />
       </Box>
     </Grid>
   );

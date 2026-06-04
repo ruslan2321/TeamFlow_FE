@@ -92,54 +92,80 @@ export default function PasswordResetPage() {
     };
 
   return (
-    <Grid gridTemplateColumns="50% 50%">
-      {isLoading ? (
+    <Grid
+      gridTemplateColumns={{ base: "1fr", md: "1fr 1fr" }}
+      minH="100vh"
+      overflow="hidden"
+    >
+      {isLoading && (
         <Box
           position="fixed"
-          top={0}
-          left={0}
-          w="100vw"
-          h="100vh"
+          inset={0}
           bg="rgba(255, 255, 255, 0.8)"
-          zIndex="9999"
+          zIndex={9999}
           display="flex"
           alignItems="center"
           justifyContent="center"
         >
-          <Spinner color="#0099FF" size={"lg"} />
+          <Spinner color="#0099FF" size="lg" />
         </Box>
-      ) : null}
+      )}
       <Box
         display="flex"
         flexDirection="column"
-        justifyContent="center"
+        justifyContent={{ base: "flex-start", md: "center" }}
         alignItems="center"
-        gap="1.5rem"
-        px="8"
+        gap={6}
+        px={{ base: 4, md: 8 }}
+        py={{ base: 8, md: 0 }}
+        overflowY="auto"
+        minH="100vh"
+        bg="white"
       >
-        <Box display="flex" flexDirection="column" alignItems="start" gap="8px">
-          <Box display="flex" alignItems="start" gap="0.5rem">
-            <Image src="/icon.png" objectFit="contain" />
-            <Heading fontWeight={"400"}>TeamFlow</Heading>
+        <Box
+          display="flex"
+          flexDirection="column"
+          alignItems={{ base: "center", md: "start" }}
+          gap={2}
+          w="full"
+          maxW="sm"
+        >
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={2}
+            justifyContent={{ base: "center", md: "flex-start" }}
+          >
+            <Image src="/icon.png" objectFit="contain" boxSize={8} />
+            <Heading fontWeight="400" fontSize={{ base: "2xl", md: "3xl" }}>
+              TeamFlow
+            </Heading>
           </Box>
-          <Text fontSize="lg" color="gray.600" textAlign="center" maxW="24rem">
+          <Text
+            fontSize="lg"
+            color="gray.600"
+            textAlign={{ base: "center", md: "left" }}
+            maxW="24rem"
+          >
             Управляй своими задачами легко!
           </Text>
-          <Text textAlign={"start"} w={"20rem"} fontSize={"22px"}>
+          <Text
+            fontSize={{ base: "xl", md: "22px" }}
+            fontWeight="600"
+            textAlign={{ base: "center", md: "start" }}
+          >
             Сброс пароля
           </Text>
           <Text
-            textAlign={"start"}
-            w={"20rem"}
-            fontSize={"15px"}
-            color={"#000000"}
-            opacity={0.5}
+            fontSize="sm"
+            color="gray.600"
+            textAlign={{ base: "center", md: "start" }}
           >
             для сброса пароля введите вашу почту
           </Text>
         </Box>
 
-        <Box as="form" maxW="20rem" w="full">
+        <Box as="form" w="full" maxW="sm">
           <VStack spacing="1rem" align="stretch">
             <FormControl>
               <InputGroup>
@@ -221,17 +247,13 @@ export default function PasswordResetPage() {
         </Text>
       </Box>
 
-      <Box position="relative">
+      <Box
+        display={{ base: "none", md: "block" }}
+        position="relative"
+        h="100vh"
+      >
         <Image src="/bgl.png" h="100vh" w="full" objectFit="cover" />
-        <Box
-          position="absolute"
-          top="0"
-          left="0"
-          w="full"
-          h="full"
-          bg="white"
-          opacity="0.3"
-        />
+        <Box position="absolute" inset={0} bg="white" opacity={0.3} />
       </Box>
     </Grid>
   );

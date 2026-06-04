@@ -44,7 +44,7 @@ import {
   RepeatIcon,
 } from "@chakra-ui/icons";
 
-import SideBar from "../components/SideBar";
+import AppPageLayout from "../components/layout/AppPageLayout";
 import {
   useGetProfileQuery,
   useUpdateProfileMutation,
@@ -338,20 +338,13 @@ export default function SettingsPage() {
   }
 
   return (
-    <Flex
-      h="100vh"
-      bg={pageBg}
-      overflow="hidden"
-      fontFamily="'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
-    >
-      <Box display={{ base: "none", lg: "block" }}>
-        <SideBar />
-      </Box>
-
+    <AppPageLayout bg={pageBg}>
       <Flex
         flex="1"
         direction="column"
         overflowY="auto"
+        minH={0}
+        fontFamily="'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
         css={{
           "&::-webkit-scrollbar": { width: "6px" },
           "&::-webkit-scrollbar-track": { background: "transparent" },
@@ -1051,6 +1044,6 @@ export default function SettingsPage() {
           </Tabs>
         </Container>
       </Flex>
-    </Flex>
+    </AppPageLayout>
   );
 }

@@ -8,6 +8,11 @@ import {
   useColorMode,
   Image,
   Tooltip,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerCloseButton,
+  useDisclosure,
 } from "@chakra-ui/react";
 import {
   FiHome,
@@ -16,6 +21,7 @@ import {
   FiLogOut,
   FiSun,
   FiMoon,
+  FiMenu,
 } from "react-icons/fi";
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import ProfileInfo from "./ProfileInfo/ProfileInfo";
@@ -27,7 +33,8 @@ const NAV_ITEMS = [
   { label: "Аналитика", path: "/analytics", icon: FiBarChart2 },
 ];
 
-export default function SideBar() {
+// Внутренний контент сайдбара (без изменений в десктоп-стилях)
+const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
   const location = useLocation();
   const navigation = useNavigate();
   const { colorMode, toggleColorMode } = useColorMode();
@@ -37,6 +44,7 @@ export default function SideBar() {
     localStorage.removeItem("authToken");
     localStorage.removeItem("user");
     navigation("/");
+    onClose?.();
   };
 
   const bgHover = useColorModeValue("gray.100", "gray.700");
@@ -45,12 +53,16 @@ export default function SideBar() {
   const borderColor = useColorModeValue("gray.200", "gray.600");
   const textColor = useColorModeValue("gray.800", "gray.200");
   const subtextColor = useColorModeValue("gray.500", "gray.400");
+  const themeHoverBg = useColorModeValue("blue.50", "blue.900/20");
+  const logoutHoverBg = useColorModeValue("red.50", "red.900/20");
+
+  const handleNavClick = () => onClose?.();
 
   return (
     <Flex
       flexDirection="column"
       h="100vh"
-      w={{ base: "full", md: "64" }}
+      w="full"
       bg="white"
       _dark={{ bg: "gray.800" }}
       borderRight="1px"
@@ -69,7 +81,7 @@ export default function SideBar() {
             color={textColor}
             letterSpacing="tight"
           >
-            TeamFLow
+            TeamFlow
           </Text>
         </Flex>
       </Box>
@@ -79,11 +91,17 @@ export default function SideBar() {
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.path;
             return (
-              <Link to={item.path} key={item.path} style={{ textDecoration: "none" }}>
+              <Link
+                to={item.path}
+                key={item.path}
+                style={{ textDecoration: "none" }}
+                onClick={handleNavClick}
+              >
                 <Flex
                   align="center"
                   px={3}
                   py={2.5}
+                  minH="44px" // Стандартная зона нажатия для мобильных
                   borderRadius="md"
                   cursor="pointer"
                   bg={isActive ? bgActive : "transparent"}
@@ -107,13 +125,14 @@ export default function SideBar() {
 
       <Box>
         <Divider mb={4} borderColor={borderColor} />
-        
         <Flex align="center" gap={2}>
-          <Flex flex="1" align="center" gap={2} px={2} py={1}>
-            <ProfileInfo id={userId ?? 0} />
+          <Flex flex="1" align="center" gap={2} px={2} py={1} minW={0}>
+            {userId != null ? <ProfileInfo id={userId} /> : null}
           </Flex>
-          
-          <Tooltip label={colorMode === "light" ? "Тёмная тема" : "Светлая тема"} hasArrow>
+          <Tooltip
+            label={colorMode === "light" ? "Тёмная тема" : "Светлая тема"}
+            hasArrow
+          >
             <IconButton
               aria-label="Переключить тему"
               icon={colorMode === "light" ? <FiMoon /> : <FiSun />}
@@ -121,15 +140,14 @@ export default function SideBar() {
               variant="ghost"
               size="sm"
               color={subtextColor}
-              _hover={{ 
-                color: "blue.500", 
-                bg: useColorModeValue("blue.50", "blue.900/20"),
-                transform: "rotate(15deg)"
+              _hover={{
+                color: "blue.500",
+                bg: themeHoverBg,
+                transform: "rotate(15deg)",
               }}
               transition="all 0.2s ease"
             />
           </Tooltip>
-          
           <Tooltip label="Выйти" hasArrow>
             <IconButton
               aria-label="Выйти"
@@ -138,12 +156,86 @@ export default function SideBar() {
               variant="ghost"
               size="sm"
               color={subtextColor}
-              _hover={{ color: "red.500", bg: useColorModeValue("red.50", "red.900/20") }}
+              _hover={{
+                color: "red.500",
+                bg: logoutHoverBg,
+              }}
               transition="all 0.15s ease"
             />
           </Tooltip>
         </Flex>
       </Box>
     </Flex>
+  );
+};
+
+export default function SideBar() {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const mobileBorderColor = useColorModeValue("gray.200", "gray.600");
+  const mobileTextColor = useColorModeValue("gray.800", "gray.200");
+
+  return (
+    <>
+      {/* Мобильная шапка (только < md) */}
+      <Box
+        display={{ base: "flex", md: "none" }}
+        position="fixed"
+        top={0}
+        left={0}
+        right={0}
+        zIndex={100}
+        h={16}
+        bg="white"
+        _dark={{ bg: "gray.800" }}
+        borderBottom="1px solid"
+        borderColor={mobileBorderColor}
+        px={4}
+        alignItems="center"
+        justifyContent="space-between"
+      >
+        <Flex align="center" gap={3} minW={0}>
+          <Image src="/icon.png" w="28px" h="28px" alt="Logo" flexShrink={0} />
+          <Text
+            fontSize="lg"
+            fontWeight="bold"
+            color={mobileTextColor}
+            isTruncated
+          >
+            TeamFlow
+          </Text>
+        </Flex>
+        <IconButton
+          aria-label="Открыть меню"
+          icon={<FiMenu />}
+          variant="ghost"
+          size="md"
+          onClick={onOpen}
+          minW="44px"
+          minH="44px"
+        />
+      </Box>
+
+      {/* Десктопный сайдбар */}
+      <Box
+        display={{ base: "none", md: "block" }}
+        w="64"
+        flexShrink={0}
+        h="100vh"
+        position="sticky"
+        top={0}
+        zIndex={10}
+      >
+        <SidebarContent />
+      </Box>
+
+      {/* Мобильный Drawer */}
+      <Drawer isOpen={isOpen} placement="left" onClose={onClose}>
+        <DrawerOverlay bg="blackAlpha.400" />
+        <DrawerContent maxW="80vw">
+          <DrawerCloseButton />
+          <SidebarContent onClose={onClose} />
+        </DrawerContent>
+      </Drawer>
+    </>
   );
 }

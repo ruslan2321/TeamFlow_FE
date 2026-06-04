@@ -37,7 +37,7 @@ import {
   RepeatIcon,
 } from "@chakra-ui/icons";
 
-import SideBar from "../components/SideBar";
+import AppPageLayout from "../components/layout/AppPageLayout";
 import TeamAnalytics from "../components/TeamAnalitycs";
 import type { TaskAnalitycs } from "../types/TeamType";
 import { useGetMyTaskQuery } from "../api/TaskApi";
@@ -334,25 +334,14 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <Flex
-      h="100vh"
-      bg={bgGradient}
-      fontFamily="'Inter', -apple-system, sans-serif"
-      overflow="hidden"
-    >
-      <Box
-        w={{ base: 0, lg: "260px" }}
-        flexShrink={0}
-        display={{ base: "none", lg: "block" }}
-      >
-        <SideBar />
-      </Box>
-
+    <AppPageLayout bg={bgGradient}>
       <Flex
         flex="1"
         direction="column"
         overflowY="auto"
-        p={{ base: 4, lg: 8, xl: 10 }}
+        p={{ base: 4, md: 6, lg: 8, xl: 10 }}
+        fontFamily="'Inter', -apple-system, sans-serif"
+        minH={0}
       >
         <Flex
           justify="space-between"
@@ -669,7 +658,12 @@ export default function AnalyticsPage() {
                 </Box>
               </Box>
 
-              <SimpleGrid columns={2} spacing={3} w="100%" mt={4}>
+              <SimpleGrid
+                columns={{ base: 1, sm: 2 }}
+                spacing={3}
+                w="100%"
+                mt={4}
+              >
                 {pieData.map((item) => (
                   <Flex
                     key={item.name}
@@ -738,6 +732,6 @@ export default function AnalyticsPage() {
           </CardBody>
         </Card>
       </Flex>
-    </Flex>
+    </AppPageLayout>
   );
 }

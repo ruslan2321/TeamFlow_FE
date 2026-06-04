@@ -15,7 +15,7 @@ import {
   Icon,
 } from "@chakra-ui/react";
 import { Search, Users, UserPlus, Check, AlertCircle } from "lucide-react";
-import SideBar from "../components/SideBar";
+import AppPageLayout from "../components/layout/AppPageLayout";
 import { useEffect, useRef, useState } from "react";
 import {
   useAddToTeamMutation,
@@ -207,12 +207,11 @@ export const MyCommand = () => {
     );
   }
 
-  return (
-    <Flex bg={pageBg} minH="100vh" overflow={'hidden'} position="relative">
-      {/* Декоративные цветные пятна на фоне */}
+  const backgroundDecorations = (
+    <>
       <Box
         position="absolute"
-        overflow={"hidden"}
+        overflow="hidden"
         w="300px"
         h="300px"
         borderRadius="full"
@@ -237,25 +236,18 @@ export const MyCommand = () => {
         pointerEvents="none"
         animation="float 25s ease-in-out infinite reverse"
       />
+    </>
+  );
 
-      {/* Сайдбар */}
-      <Box
-        w={{ base: "full", md: "64" }}
-        flexShrink={0}
-        zIndex={10}
-        bg={cardBg}
-        borderRightWidth="1px"
-        borderColor={borderColor}
-      >
-        <SideBar />
-      </Box>
-
+  return (
+    <AppPageLayout bg={pageBg} decorations={backgroundDecorations}>
       <Flex
         flexDirection="column"
         flex={1}
         p={{ base: 4, md: 8 }}
         overflowY="auto"
         zIndex={1}
+        minH={0}
       >
         {/* Заголовок с цветными акцентами */}
         <Flex align="center" gap={3} mb={8}>
@@ -548,8 +540,9 @@ export const MyCommand = () => {
               teamMembers.map((member, index) => (
                 <Box
                   key={member.id}
-                  flex="1 1 280px"
-                  maxW="360px"
+                  flex={{ base: "1 1 100%", sm: "1 1 280px" }}
+                  maxW={{ base: "full", sm: "360px" }}
+                  w="full"
                   animation={`fadeInUp 0.4s ease-out ${index * 0.05}s both`}
                 >
                   <UserCard member={member} isClickable={false} />
@@ -605,6 +598,6 @@ export const MyCommand = () => {
           to { opacity: 1; transform: translateY(0); }
         }
       `}</style>
-    </Flex>
+    </AppPageLayout>
   );
 };
