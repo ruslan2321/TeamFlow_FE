@@ -23,7 +23,8 @@ import { getCurrentUserId } from "../../../utils/utils.user.id";
 export const AddTask: FC<{
   isOpen: boolean;
   onClose: () => void;
-}> = ({ isOpen, onClose }) => {
+  onCreated?: () => void;
+}> = ({ isOpen, onClose, onCreated }) => {
   const toast = useToast();
   const titleRef = useRef<HTMLInputElement>(null);
 
@@ -86,6 +87,7 @@ export const AddTask: FC<{
 
     try {
       await addTask({ dto: taskDto, userId: Number(userId) }).unwrap();
+      onCreated?.();
       toast({
         title: "Задача создана",
         status: "success",

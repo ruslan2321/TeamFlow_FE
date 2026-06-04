@@ -12,6 +12,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import type { Task } from "../../types/TaskType";
+import { getTaskListKey } from "../../api/taskNormalize";
 
 interface CardTaskProps {
   tasks?: Task[];
@@ -127,11 +128,12 @@ export default function CardTask({ tasks }: CardTaskProps) {
     >
       {tasks.map((item, index) => {
         const status = STATUS_CONFIG[item.status] || DEFAULT_STATUS;
-        const safeTaskName =
-          typeof item.name_task === "string" ? item.name_task.trim() : "";
+        const safeTaskName = String(item.name_task ?? "").trim();
+        const taskKey = getTaskListKey(item, index);
+        const canOpenTask = item.task_id > 0;
         return (
           <Box
-            key={item.task_id}
+            key={taskKey}
             bg={cardBg}
             borderRadius="2xl"
             border="2px solid"
@@ -148,8 +150,10 @@ export default function CardTask({ tasks }: CardTaskProps) {
             flexDirection="column"
             h="full"
             minH="200px"
-            cursor="pointer"
-            onClick={() => navigate(`/task/${item.task_id}`)}
+            cursor={canOpenTask ? "pointer" : "default"}
+            onClick={() => {
+              if (canOpenTask) navigate(`/task/${item.task_id}`);
+            }}
             position="relative"
             overflow="hidden"
             animation={`fadeInUp 0.35s ease-out ${index * 0.05}s both`}
@@ -161,6 +165,7 @@ export default function CardTask({ tasks }: CardTaskProps) {
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
+              if (!canOpenTask) return;
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
                 navigate(`/task/${item.task_id}`);

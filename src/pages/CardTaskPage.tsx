@@ -20,7 +20,7 @@ import { AddTask } from "../components/Task/Modal/AddTaskModal";
 import CardTask from "../components/Task/CardTask";
 
 export default function CardTaskPage() {
-  const { data: tasks = [] } = useGetTasksQuery();
+  const { data: tasks = [], refetch } = useGetTasksQuery();
   const [tabIndex, setTabIndex] = useState(0);
 
   const getFilteredTasks = (index: number): Task[] => {
@@ -132,7 +132,7 @@ export default function CardTaskPage() {
           />
         </Box>
       </Box>
-      <AddTask isOpen={isOpen} onClose={onClose} />
+      <AddTask isOpen={isOpen} onClose={onClose} onCreated={() => refetch()} />
     </AppPageLayout>
   );
 }
