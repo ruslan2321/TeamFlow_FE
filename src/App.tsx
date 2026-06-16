@@ -1,22 +1,22 @@
-import "./App.css";
+import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import PageLoader from "./components/ui/PageLoader";
+import "./App.css";
 
-import Login from "./pages/LoginPage";
-import CardTaskPage from "./pages/CardTaskPage";
-import PasswordResetPage from "./pages/PasswordResetPage";
-import Register from "./pages/RegisterPage";
-import ProfilePage from "./pages/Profile";
-import DetailtaskPage from "./pages/DetailtaskPage";
-import { MyCommand } from "./pages/MyCommand";
-import AnalyticsPage from "./pages/AnalytickPage";
-
-
-
-
+const Login = lazy(() => import("./pages/LoginPage"));
+const CardTaskPage = lazy(() => import("./pages/CardTaskPage"));
+const PasswordResetPage = lazy(() => import("./pages/PasswordResetPage"));
+const Register = lazy(() => import("./pages/RegisterPage"));
+const ProfilePage = lazy(() => import("./pages/Profile"));
+const DetailtaskPage = lazy(() => import("./pages/DetailtaskPage"));
+const MyCommand = lazy(() =>
+  import("./pages/MyCommand").then((module) => ({ default: module.MyCommand })),
+);
+const AnalyticsPage = lazy(() => import("./pages/AnalytickPage"));
 
 function App() {
   return (
-    <>
+    <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Login />} />
         <Route path="/task" element={<CardTaskPage />} />
@@ -26,9 +26,8 @@ function App() {
         <Route path="/task/:task_id" element={<DetailtaskPage />} />
         <Route path="/command" element={<MyCommand />} />
         <Route path="/analytics" element={<AnalyticsPage />} />
-{/*         <Route path="/settings" element={<SettingsPage />}/> */}
       </Routes>
-    </>
+    </Suspense>
   );
 }
 
