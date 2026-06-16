@@ -6,7 +6,6 @@ import {
   Heading,
   Card,
   CardBody,
-  Avatar,
   SimpleGrid,
   Stat,
   StatLabel,
@@ -18,6 +17,7 @@ import type { TaskAnalitycs } from "../types/TeamType";
 import { useMemo } from "react";
 import type { Task } from "../types/TaskType";
 import { useGetTasksQuery } from "../api/TaskApi";
+import UserAvatar from "./ui/UserAvatar";
 
 interface TeamAnalyticsProps {
   members: TaskAnalitycs[];
@@ -94,8 +94,9 @@ const TeamMemberCard = ({ member }: { member: TaskAnalitycs }) => {
     >
       <Flex align="center" gap={3}>
         <Box position="relative">
-          <Avatar
+          <UserAvatar
             name={member.username}
+            avatar={member.avatar}
             size="sm"
             bg={avatarBg}
             color={avatarColor}

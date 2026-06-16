@@ -26,6 +26,7 @@ import {
 import { useLocation, Link, useNavigate } from "react-router-dom";
 import ProfileInfo from "./ProfileInfo/ProfileInfo";
 import { getCurrentUserId } from "../utils/utils.user.id";
+import { clearAuthSession } from "../utils/auth.storage";
 
 const NAV_ITEMS = [
   { label: "Главная", path: "/task", icon: FiHome },
@@ -41,8 +42,7 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
   const userId = getCurrentUserId();
 
   const LogOut = () => {
-    localStorage.removeItem("authToken");
-    localStorage.removeItem("user");
+    clearAuthSession();
     navigation("/");
     onClose?.();
   };
@@ -171,6 +171,7 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
 
 export default function SideBar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const userId = getCurrentUserId();
   const mobileBorderColor = useColorModeValue("gray.200", "gray.600");
   const mobileTextColor = useColorModeValue("gray.800", "gray.200");
 
@@ -204,15 +205,22 @@ export default function SideBar() {
             TeamFlow
           </Text>
         </Flex>
-        <IconButton
-          aria-label="Открыть меню"
-          icon={<FiMenu />}
-          variant="ghost"
-          size="md"
-          onClick={onOpen}
-          minW="44px"
-          minH="44px"
-        />
+        <Flex align="center" gap={2} flexShrink={0}>
+          {userId != null ? (
+            <Box display={{ base: "block", md: "none" }}>
+              <ProfileInfo id={userId} compact />
+            </Box>
+          ) : null}
+          <IconButton
+            aria-label="Открыть меню"
+            icon={<FiMenu />}
+            variant="ghost"
+            size="md"
+            onClick={onOpen}
+            minW="44px"
+            minH="44px"
+          />
+        </Flex>
       </Box>
 
       {/* Десктопный сайдбар */}

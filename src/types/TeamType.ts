@@ -19,6 +19,7 @@ export interface TaskAnalitycs {
     id: number
     username: string,
     role: string,
+    avatar?: string,
      status?: "В сети" | "Не в сети";
     tasks: { total: number, done: number, inProgress: number, todo: number },
     efficiency: number,

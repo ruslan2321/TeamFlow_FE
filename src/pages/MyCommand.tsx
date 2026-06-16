@@ -1,6 +1,5 @@
 // src/pages/MyCommand.tsx
 import {
-  Avatar,
   Box,
   Button,
   Flex,
@@ -23,23 +22,11 @@ import {
   useSearchUsersQuery,
 } from "../api/ProfileApi";
 import type { Profile } from "../types/ProfileType";
-import {
-  UserCard } from "../components/MyCommandUser/UserCard";
-
-  import  type {TeamMember} from "../types/TeamType"
-  const getCurrentUserId = (): number | null => {
-  try {
-    const raw = localStorage.getItem("user");
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      return parsed?.id || parsed?.userId || null;
-    }
-    const direct = localStorage.getItem("id");
-    return direct ? Number(direct) || null : null;
-  } catch {
-    return null;
-  }
-};
+import type { TeamMember } from "../types/TeamType";
+import { UserCard } from "../components/MyCommandUser/UserCard";
+import UserAvatar from "../components/ui/UserAvatar";
+import { getCurrentUserId } from "../utils/utils.user.id";
+import { getStoredUser } from "../utils/auth.storage";
 
 export const MyCommand = () => {
   const toast = useToast();
@@ -61,7 +48,10 @@ export const MyCommand = () => {
       id: user.id,
       username: user.username,
       role: (user as any).role,
-      avatar: (user as any).avatar,
+      avatar:
+        user.id === currentUserId
+          ? getStoredUser()?.avatar || user.avatar
+          : user.avatar,
       status: (user as any).status || "offline",
       contactInfo: {
         email: user.email,
@@ -389,8 +379,8 @@ export const MyCommand = () => {
                         <Flex gap={3} alignItems="center" flex={1} minW={0}>
                           {/* Цветная рамка аватара */}
                           <Box p="2px" borderRadius="full" bg={accentColor}>
-                            <Avatar
-                              src={(item as any).avatar}
+                            <UserAvatar
+                              avatar={(item as Profile).avatar}
                               name={item.username}
                               size="sm"
                               bg={cardBg}

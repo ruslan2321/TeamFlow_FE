@@ -42,6 +42,7 @@ import TeamAnalytics from "../components/TeamAnalitycs";
 import type { TaskAnalitycs } from "../types/TeamType";
 import { useGetMyTaskQuery } from "../api/TaskApi";
 import { getCurrentUserId } from "../utils/utils.user.id";
+import { getStoredUser } from "../utils/auth.storage";
 import { useGetTeamQuery } from "../api/ProfileApi";
 import type { Profile } from "../types/ProfileType";
 import type { Task } from "../types/TaskType";
@@ -303,6 +304,11 @@ export default function AnalyticsPage() {
         id: user.id,
         username: user.username,
         role: extendedUser.role ?? "Сотрудник",
+        avatar:
+          user.id === currentUserId
+            ? getStoredUser()?.avatar || user.avatar
+            : user.avatar,
+        status: extendedUser.status as TaskAnalitycs["status"],
         tasks: {
           total: extendedUser.tasksCount ?? 0,
           done: extendedUser.completedTasks ?? 0,

@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Flex,
   HStack,
@@ -9,6 +8,7 @@ import {
 } from "@chakra-ui/react";
 import { getStatusConfig } from "../../utils/status.utils";
 import type { UserCardProps } from "../../types/TeamType";
+import UserAvatar from "../ui/UserAvatar";
 
 export const UserCard = ({
   member,
@@ -100,9 +100,9 @@ export const UserCard = ({
               bgGradient={avatarRingGradient}
               flexShrink={0}
             >
-              <Avatar
+              <UserAvatar
                 name={member.username}
-                src={member.avatar}
+                avatar={member.avatar}
                 size="md"
                 bg={bg}
                 color={headingColor}

@@ -4,7 +4,6 @@ import {
   Box,
   Flex,
   Text,
-  Avatar,
   Tag,
   TagLabel,
   Button,
@@ -44,15 +43,24 @@ import {
   FiUserPlus,
 } from "react-icons/fi";
 import AppPageLayout from "../components/layout/AppPageLayout";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { formatDate } from "../utils/date";
 import {
   useDeleteTaskMutation,
   useEditTaskMutation,
+  useGetTasksQuery,
   useViewTaskQuery,
 } from "../api/TaskApi";
+import { findTaskInList, isPopulatedTask } from "../api/taskNormalize";
 import { useGetTeamQuery } from "../api/ProfileApi";
 import { getCurrentUserId } from "../utils/utils.user.id";
+import { getStoredUser } from "../utils/auth.storage";
+import {
+  buildAvatarLookup,
+  mergeStoredAvatarIntoUsers,
+  resolveUserAvatarUrl,
+} from "../utils/avatar.utils";
+import UserAvatar from "../components/ui/UserAvatar";
 import type { Task } from "../types/TaskType";
 import type { Profile } from "../types/ProfileType";
 
@@ -97,11 +105,17 @@ const parseComments = (raw?: string) => {
     );
 };
 
-const getInitials = (name?: string) => name?.charAt(0).toUpperCase() || "U";
+const toAssignee = (user: Profile): Task["assignedUser"] => ({
+  id: user.id,
+  username: user.username,
+  email: user.email,
+  avatar: user.avatar,
+});
 
 const CommentItem = React.memo(
   ({
     comment,
+    avatarSrc,
     textColor,
     subtextColor,
     avatarBg,
@@ -109,6 +123,7 @@ const CommentItem = React.memo(
     commentBg,
   }: {
     comment: { date: string; author: string; text: string };
+    avatarSrc?: string;
     textColor: string;
     subtextColor: string;
     avatarBg: string;
@@ -116,16 +131,15 @@ const CommentItem = React.memo(
     commentBg: string;
   }) => (
     <Flex gap={3} align="start">
-      <Avatar
+      <UserAvatar
         size="sm"
         name={comment.author}
+        avatar={avatarSrc}
         bg={avatarBg}
         color={avatarColor}
         fontSize="xs"
         mt={1}
-      >
-        {getInitials(comment.author)}
-      </Avatar>
+      />
       <Box flex="1">
         <HStack spacing={2} mb={1}>
           <Text fontSize="sm" fontWeight="600" color={textColor}>
@@ -230,23 +244,49 @@ const StatusMenu = React.memo(
 StatusMenu.displayName = "StatusMenu";
 
 export default function DetailtaskPage() {
-  const { task_id } = useParams();
-  const TaskId = Number(task_id);
+  const { task_id: routeKey } = useParams();
+  const location = useLocation();
+  const TaskId = Number(routeKey);
+  const hasNumericId = Number.isFinite(TaskId) && TaskId > 0;
   const currentUserId = getCurrentUserId();
   const navigate = useNavigate();
   const toast = useToast();
 
   const {
-    data: task,
-    isLoading,
+    data: taskFromApi,
+    isLoading: isApiLoading,
     refetch,
-  } = useViewTaskQuery(TaskId, { skip: !TaskId });
+  } = useViewTaskQuery(TaskId, { skip: !hasNumericId });
+  const { data: tasks = [], isLoading: isListLoading } = useGetTasksQuery();
+  const taskFromState = (location.state as { task?: Task } | null)?.task;
+  const taskFromList = useMemo(
+    () => findTaskInList(tasks, routeKey),
+    [tasks, routeKey],
+  );
+  const task = useMemo(() => {
+    const candidates = hasNumericId
+      ? [taskFromApi, taskFromState, taskFromList]
+      : [taskFromState, taskFromList, taskFromApi];
+
+    return candidates.find(isPopulatedTask);
+  }, [hasNumericId, taskFromApi, taskFromState, taskFromList]);
+  const isLoading =
+    !task &&
+    ((hasNumericId && isApiLoading) || isListLoading);
   const [editTask, { isLoading: isUpdating }] = useEditTaskMutation();
   const [deleteTask, { isLoading: isDeleting }] = useDeleteTaskMutation();
   const { data: teamData, isLoading: isTeamLoading } = useGetTeamQuery(
     currentUserId!,
     { skip: !currentUserId },
   );
+  const avatarLookup = useMemo(() => {
+    const members = mergeStoredAvatarIntoUsers(
+      teamData?.data ?? [],
+      currentUserId,
+      getStoredUser(),
+    );
+    return buildAvatarLookup(members);
+  }, [teamData, currentUserId]);
 
   const [commentText, setCommentText] = useState("");
   const [editFormData, setEditFormData] = useState({
@@ -307,14 +347,23 @@ export default function DetailtaskPage() {
   useEffect(() => {
     if (task) {
       setCurrentStatus(task.status || "К разработке");
-      setLocalAssignee(task.assignedUser);
+
+      let assignee = task.assignedUser;
+      if (assignee && !assignee.avatar) {
+        const member = teamData?.data?.find((user) => user.id === assignee!.id);
+        if (member?.avatar) {
+          assignee = { ...assignee, avatar: member.avatar };
+        }
+      }
+      setLocalAssignee(assignee);
+
       setEditFormData({
         title: task.title || "",
         description: task.description || "",
         CommentTask: task.CommentTask || "",
       });
     }
-  }, [task]);
+  }, [task, teamData]);
 
   useEffect(() => {
     if (editMode === "title" && titleInputRef.current)
@@ -408,12 +457,7 @@ export default function DetailtaskPage() {
     const currentUser = teamData?.data?.find(
       (u: Profile) => Number(u.id) === Number(currentUserId),
     );
-    if (currentUser)
-      setLocalAssignee({
-        id: currentUser.id,
-        username: currentUser.username,
-        email: currentUser.email,
-      });
+    if (currentUser) setLocalAssignee(toAssignee(currentUser));
     try {
       await editTask({
         task_id: TaskId,
@@ -448,12 +492,7 @@ export default function DetailtaskPage() {
       const selectedUser = teamData?.data?.find(
         (u: Profile) => Number(u.id) === Number(userId),
       );
-      if (selectedUser)
-        setLocalAssignee({
-          id: selectedUser.id,
-          username: selectedUser.username,
-          email: selectedUser.email,
-        });
+      if (selectedUser) setLocalAssignee(toAssignee(selectedUser));
     }
     try {
       await editTask({
@@ -559,6 +598,17 @@ export default function DetailtaskPage() {
     return (
       <Flex h="100vh" bg={bgPage} justify="center" align="center">
         <Text color={subtextColor}>Загрузка...</Text>
+      </Flex>
+    );
+  }
+
+  if (!task) {
+    return (
+      <Flex h="100vh" bg={bgPage} direction="column" justify="center" align="center" gap={4}>
+        <Text color={subtextColor}>Задача не найдена</Text>
+        <Button variant="ghost" leftIcon={<FiArrowLeft />} onClick={() => navigate("/task")}>
+          Назад к списку
+        </Button>
       </Flex>
     );
   }
@@ -853,6 +903,10 @@ export default function DetailtaskPage() {
                         <CommentItem
                           key={i}
                           comment={c}
+                          avatarSrc={resolveUserAvatarUrl(
+                            { username: c.author },
+                            avatarLookup,
+                          )}
                           textColor={textColor}
                           subtextColor={subtextColor}
                           avatarBg={avatarBg}
@@ -981,15 +1035,14 @@ export default function DetailtaskPage() {
                           <Spinner size="sm" color={accentColor} />
                         ) : localAssignee ? (
                           <>
-                            <Avatar
+                            <UserAvatar
                               size="sm"
-                              name={localAssignee.username}
+                              user={localAssignee}
+                              lookup={avatarLookup}
                               bg={avatarBg}
                               color={avatarColor}
                               fontSize="xs"
-                            >
-                              {getInitials(localAssignee.username)}
-                            </Avatar>
+                            />
                             <Text
                               fontSize="sm"
                               fontWeight="500"
@@ -1046,15 +1099,14 @@ export default function DetailtaskPage() {
                           <MenuItem
                             key={user.id}
                             icon={
-                              <Avatar
+                              <UserAvatar
                                 size="xs"
-                                name={user.username}
+                                user={user}
+                                lookup={avatarLookup}
                                 bg={avatarBg}
                                 color={avatarColor}
                                 fontSize="xx-small"
-                              >
-                                {getInitials(user.username)}
-                              </Avatar>
+                              />
                             }
                             onClick={() => handleAssignUser(user.id)}
                             color={isSelected ? accentColor : textColor}

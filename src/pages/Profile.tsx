@@ -41,23 +41,8 @@ import { useGetMyTaskQuery } from "../api/TaskApi";
 import CardTask from "../components/Task/CardTask";
 import { getCurrentUserId } from "../utils/utils.user.id";
 import { getStatusConfig } from "../utils/status.utils";
-
-const API_ORIGIN = BASE_FILE_URL();
-
-function BASE_FILE_URL() {
-  const envBase =
-    (import.meta as any)?.env?.VITE_SERVER_URL ||
-    (import.meta as any)?.env?.VITE_API_ORIGIN;
-
-  if (envBase) return envBase.replace(/\/$/, "");
-
-  try {
-    const url = new URL((import.meta as any)?.env?.VITE_BASE_API_URL || "");
-    return `${url.protocol}//${url.host}`;
-  } catch {
-    return "http://localhost:3000";
-  }
-}
+import { getAvatarUrl } from "../utils/avatar.utils";
+import { updateStoredUser } from "../utils/auth.storage";
 
 export interface ProfileData {
   id: number;
@@ -434,6 +419,9 @@ export default function ProfilePage() {
   const fileinputRef = useRef<HTMLInputElement>(null);
   const userId = getCurrentUserId();
   const toast = useToast();
+  const [avatarVersion, setAvatarVersion] = useState(0);
+  const [localAvatarPreview, setLocalAvatarPreview] = useState<string>();
+  const [avatarOverride, setAvatarOverride] = useState<string>();
 
   const {
     data: profile,
@@ -505,18 +493,27 @@ export default function ProfilePage() {
       return;
     }
 
+    let previewUrl: string | undefined;
+
     try {
-      await updateAvatar(file).unwrap();
+      previewUrl = URL.createObjectURL(file);
+      setLocalAvatarPreview(previewUrl);
+
+      const updatedProfile = await updateAvatar(file).unwrap();
+
+      if (updatedProfile.avatar) {
+        setAvatarOverride(updatedProfile.avatar);
+        setAvatarVersion(Date.now());
+        updateStoredUser({ avatar: updatedProfile.avatar });
+      }
 
       toast({
-        title: "Аватар обновлен",
+        title: "Аватар обновлён",
         description: "Изображение профиля успешно сохранено",
         status: "success",
         duration: 2000,
         isClosable: true,
       });
-
-      refetch();
     } catch (err: any) {
       toast({
         title: "Ошибка загрузки",
@@ -527,6 +524,10 @@ export default function ProfilePage() {
         isClosable: true,
       });
     } finally {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+      setLocalAvatarPreview(undefined);
       if (fileinputRef.current) {
         fileinputRef.current.value = "";
       }
@@ -569,9 +570,12 @@ export default function ProfilePage() {
     }
   };
 
-  const avatarSrc = (profile as any)?.avatar
-    ? `${API_ORIGIN}/uploads/avatars/${(profile as any).avatar}`
-    : undefined;
+  const avatarSrc =
+    localAvatarPreview ??
+    getAvatarUrl(
+      avatarOverride ?? (profile as ProfileData)?.avatar,
+      avatarVersion || undefined,
+    );
 
   return (
     <AppPageLayout bg={bgPage}>
@@ -632,6 +636,7 @@ export default function ProfilePage() {
                 />
 
                 <Avatar
+                  key={`${avatarOverride ?? profile?.avatar}-${avatarVersion}`}
                   size="2xl"
                   name={(profile as any)?.username || "User"}
                   src={avatarSrc}

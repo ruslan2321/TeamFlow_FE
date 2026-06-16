@@ -7,18 +7,29 @@ import {
   HStack,
   Input,
   Select,
+  Flex,
   Textarea,
   useToast,
   VStack,
   useColorModeValue,
   Box,
 } from "@chakra-ui/react";
-import { useState, type FC, useEffect, useRef } from "react";
+import { useState, type FC, useEffect, useRef, useMemo } from "react";
 import { useAddTaskMutation } from "../../../api/TaskApi";
 import type { Task } from "../../../types/TaskType";
 import { UI_Modal } from "../../ui/UI_Modal/Modal";
-import { useGetTeamQuery } from "../../../api/ProfileApi";
-import { getCurrentUserId } from "../../../utils/utils.user.id";
+import { useGetProfileQuery, useGetTeamQuery } from "../../../api/ProfileApi";
+import type { Profile } from "../../../types/ProfileType";
+import { getCurrentUserId, isValidNumericId } from "../../../utils/utils.user.id";
+
+const getStoredUsername = () => {
+  try {
+    const user = JSON.parse(localStorage.getItem("user") || "{}");
+    return user?.username ?? user?.name ?? user?.login ?? "";
+  } catch {
+    return "";
+  }
+};
 
 export const AddTask: FC<{
   isOpen: boolean;
@@ -37,8 +48,42 @@ export const AddTask: FC<{
   });
 
   const [addTask, { isLoading }] = useAddTaskMutation();
-  const userId = getCurrentUserId();
-  const { data: team } = useGetTeamQuery(userId ?? 0);
+  const currentUserId = getCurrentUserId();
+  const { data: team } = useGetTeamQuery(currentUserId!, {
+    skip: !currentUserId,
+  });
+  const { data: currentProfile } = useGetProfileQuery(currentUserId!, {
+    skip: !currentUserId,
+  });
+
+  const currentUserName =
+    currentProfile?.username || getStoredUsername() || "Я";
+
+  const assigneeOptions = useMemo((): Profile[] => {
+    const members = team?.data ?? [];
+    if (!currentUserId) return members;
+
+    const alreadyInTeam = members.some(
+      (member) => Number(member.id) === currentUserId,
+    );
+    if (alreadyInTeam) return members;
+
+    return [
+      {
+        id: currentUserId,
+        username: currentUserName,
+        login: "",
+        password: "",
+        email: currentProfile?.email ?? "",
+      },
+      ...members,
+    ];
+  }, [team?.data, currentUserId, currentUserName, currentProfile?.email]);
+
+  const handleAssignToMe = () => {
+    if (!currentUserId) return;
+    setFormData((prev) => ({ ...prev, userId: currentUserId }));
+  };
 
   // 🎨 Современная палитра: спокойные тона, чёткий контраст
   const inputBg = useColorModeValue("gray.50", "gray.750");
@@ -73,7 +118,7 @@ export const AddTask: FC<{
       });
       return;
     }
-    if (!formData.userId) {
+    if (!formData.userId || !isValidNumericId(formData.userId)) {
       toast({
         title: "Выберите исполнителя",
         status: "warning",
@@ -249,33 +294,56 @@ export const AddTask: FC<{
             </FormControl>
 
             <FormControl flex={1} isRequired>
-              <FormLabel
-                fontSize="sm"
-                fontWeight="500"
-                color={labelColor}
-                mb={1.5}
-              >
-                Исполнитель
-              </FormLabel>
+              <Flex justify="space-between" align="center" mb={1.5}>
+                <FormLabel
+                  fontSize="sm"
+                  fontWeight="500"
+                  color={labelColor}
+                  mb={0}
+                >
+                  Исполнитель
+                </FormLabel>
+                {currentUserId && (
+                  <Button
+                    size="xs"
+                    variant="ghost"
+                    colorScheme="blue"
+                    onClick={handleAssignToMe}
+                    isDisabled={formData.userId === currentUserId}
+                    fontWeight="500"
+                    h="auto"
+                    py={1}
+                    px={2}
+                  >
+                    На меня
+                  </Button>
+                )}
+              </Flex>
               <Select
-                placeholder="Выберите из команды..."
+                placeholder="Выберите исполнителя..."
                 bg={inputBg}
                 borderColor={borderColor}
                 borderRadius="lg"
                 h="42px"
                 _hover={{ bg: inputHoverBg }}
                 focusBorderColor={accentColor}
-                value={formData.userId}
+                value={formData.userId ?? ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, userId: Number(e.target.value) })
+                  setFormData({
+                    ...formData,
+                    userId: Number(e.target.value),
+                  })
                 }
                 transition="all 0.15s ease"
               >
-                {team?.data?.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    {m.username}
-                  </option>
-                ))}
+                {assigneeOptions.map((member) => {
+                  const isMe = Number(member.id) === currentUserId;
+                  return (
+                    <option key={member.id} value={member.id}>
+                      {isMe ? `${member.username} (я)` : member.username}
+                    </option>
+                  );
+                })}
               </Select>
             </FormControl>
           </HStack>

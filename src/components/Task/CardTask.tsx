@@ -1,6 +1,5 @@
 // src/components/CardTask/index.tsx
 import {
-  Avatar,
   Box,
   Flex,
   Text,
@@ -9,10 +8,19 @@ import {
   useColorModeValue,
   Icon,
 } from "@chakra-ui/react";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle } from "lucide-react";
 import type { Task } from "../../types/TaskType";
-import { getTaskListKey } from "../../api/taskNormalize";
+import { getTaskListKey, getTaskRouteKey } from "../../api/taskNormalize";
+import { useGetTeamQuery } from "../../api/ProfileApi";
+import { getCurrentUserId } from "../../utils/utils.user.id";
+import { getStoredUser } from "../../utils/auth.storage";
+import {
+  buildAvatarLookup,
+  mergeStoredAvatarIntoUsers,
+} from "../../utils/avatar.utils";
+import UserAvatar from "../ui/UserAvatar";
 
 interface CardTaskProps {
   tasks?: Task[];
@@ -83,6 +91,18 @@ export default function CardTask({ tasks }: CardTaskProps) {
   );
 
   const navigate = useNavigate();
+  const currentUserId = getCurrentUserId();
+  const { data: teamData } = useGetTeamQuery(currentUserId!, {
+    skip: !currentUserId,
+  });
+  const avatarLookup = useMemo(() => {
+    const members = mergeStoredAvatarIntoUsers(
+      teamData?.data ?? [],
+      currentUserId,
+      getStoredUser(),
+    );
+    return buildAvatarLookup(members);
+  }, [teamData, currentUserId]);
 
   if (!tasks?.length) {
     return (
@@ -128,9 +148,14 @@ export default function CardTask({ tasks }: CardTaskProps) {
     >
       {tasks.map((item, index) => {
         const status = STATUS_CONFIG[item.status] || DEFAULT_STATUS;
-        const safeTaskName = String(item.name_task ?? "").trim();
+        const assignee = item.assignedUser;
+        const safeTaskName = String(
+          assignee?.username ?? item.name_task ?? "",
+        ).trim();
         const taskKey = getTaskListKey(item, index);
-        const canOpenTask = item.task_id > 0;
+        const routeKey = getTaskRouteKey(item);
+        const openTask = () =>
+          navigate(`/task/${encodeURIComponent(routeKey)}`, { state: { task: item } });
         return (
           <Box
             key={taskKey}
@@ -150,10 +175,8 @@ export default function CardTask({ tasks }: CardTaskProps) {
             flexDirection="column"
             h="full"
             minH="200px"
-            cursor={canOpenTask ? "pointer" : "default"}
-            onClick={() => {
-              if (canOpenTask) navigate(`/task/${item.task_id}`);
-            }}
+            cursor="pointer"
+            onClick={openTask}
             position="relative"
             overflow="hidden"
             animation={`fadeInUp 0.35s ease-out ${index * 0.05}s both`}
@@ -165,10 +188,9 @@ export default function CardTask({ tasks }: CardTaskProps) {
             role="button"
             tabIndex={0}
             onKeyDown={(e) => {
-              if (!canOpenTask) return;
               if (e.key === "Enter" || e.key === " ") {
                 e.preventDefault();
-                navigate(`/task/${item.task_id}`);
+                openTask();
               }
             }}
           >
@@ -222,8 +244,10 @@ export default function CardTask({ tasks }: CardTaskProps) {
                     bg={status.bg}
                     flexShrink={0}
                   >
-                    <Avatar
+                    <UserAvatar
                       size="xs"
+                      user={assignee}
+                      lookup={avatarLookup}
                       name={safeTaskName || "Не назначено"}
                       bg={cardBg}
                       border="2px solid"
@@ -236,9 +260,9 @@ export default function CardTask({ tasks }: CardTaskProps) {
                     fontWeight="medium"
                     color={metaColor}
                     noOfLines={1}
-                    title={item.name_task}
+                    title={safeTaskName || item.name_task}
                   >
-                    {item.name_task || "Не назначено"}
+                    {safeTaskName || item.name_task || "Не назначено"}
                   </Text>
                 </Flex>
 
