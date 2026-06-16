@@ -26,8 +26,11 @@ import { useToast } from "@chakra-ui/react";
 import { useNavigate } from "react-router-dom";
 import { useSendCodeMutation } from "../api/AuthApi";
 import { useVeryfcodeMutation } from "../api/ProfileApi";
+import { useAuthPageColors } from "../hooks/useAuthPageColors";
+import AuthThemeToggle from "../components/ui/AuthThemeToggle";
 
 export default function PasswordResetPage() {
+  const colors = useAuthPageColors();
   const [sendcode, { isLoading }] = useSendCodeMutation();
   const [veryfcode] = useVeryfcodeMutation();
   const toast = useToast();
@@ -97,11 +100,12 @@ export default function PasswordResetPage() {
       minH="100vh"
       overflow="hidden"
     >
+      <AuthThemeToggle />
       {isLoading && (
         <Box
           position="fixed"
           inset={0}
-          bg="rgba(255, 255, 255, 0.8)"
+          bg={colors.overlayBg}
           zIndex={9999}
           display="flex"
           alignItems="center"
@@ -120,7 +124,7 @@ export default function PasswordResetPage() {
         py={{ base: 8, md: 0 }}
         overflowY="auto"
         minH="100vh"
-        bg="white"
+        bg={colors.panelBg}
       >
         <Box
           display="flex"
@@ -137,13 +141,17 @@ export default function PasswordResetPage() {
             justifyContent={{ base: "center", md: "flex-start" }}
           >
             <Image src="/icon.png" objectFit="contain" boxSize={8} />
-            <Heading fontWeight="400" fontSize={{ base: "2xl", md: "3xl" }}>
+            <Heading
+              fontWeight="400"
+              fontSize={{ base: "2xl", md: "3xl" }}
+              color={colors.headingColor}
+            >
               TeamFlow
             </Heading>
           </Box>
           <Text
             fontSize="lg"
-            color="gray.600"
+            color={colors.mutedTextColor}
             textAlign={{ base: "center", md: "left" }}
             maxW="24rem"
           >
@@ -152,13 +160,13 @@ export default function PasswordResetPage() {
           <Text
             fontSize={{ base: "xl", md: "22px" }}
             fontWeight="600"
-            textAlign={{ base: "center", md: "start" }}
+            color={colors.titleColor}
           >
             Сброс пароля
           </Text>
           <Text
             fontSize="sm"
-            color="gray.600"
+            color={colors.mutedTextColor}
             textAlign={{ base: "center", md: "start" }}
           >
             для сброса пароля введите вашу почту
@@ -204,7 +212,7 @@ export default function PasswordResetPage() {
               </InputGroup>
             </FormControl>
             <FormControl>
-              <FormLabel color="black" opacity={0.5}>
+              <FormLabel color={colors.labelColor} opacity={0.8}>
                 Введите код:
               </FormLabel>
               <HStack spacing={2}>
@@ -242,8 +250,11 @@ export default function PasswordResetPage() {
             </Button>
           </VStack>
         </Box>
-        <Text>
-          Ознакомится с <span style={{ color: "blue" }}>политикой сайта </span>
+        <Text color={colors.mutedTextColor}>
+          Ознакомиться с{" "}
+          <Text as="span" color="blue.400">
+            политикой сайта
+          </Text>
         </Text>
       </Box>
 
@@ -253,7 +264,7 @@ export default function PasswordResetPage() {
         h="100vh"
       >
         <Image src="/bgl.png" h="100vh" w="full" objectFit="cover" />
-        <Box position="absolute" inset={0} bg="white" opacity={0.3} />
+        <Box position="absolute" inset={0} bg={colors.imageOverlayBg} opacity={0.3} />
       </Box>
     </Grid>
   );

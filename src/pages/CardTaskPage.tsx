@@ -9,6 +9,7 @@ import {
   Tabs,
   Text,
   useDisclosure,
+  useColorModeValue,
 } from "@chakra-ui/react";
 import { BsPlus } from "react-icons/bs";
 import AppPageLayout from "../components/layout/AppPageLayout";
@@ -30,6 +31,8 @@ export default function CardTaskPage() {
   };
 
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const headerBorderColor = useColorModeValue("gray.200", "gray.700");
+
   return (
     <AppPageLayout bg="gray.50" _dark={{ bg: "gray.900" }}>
       <Box display="flex" flexDirection="column" h="full" overflow="hidden">
@@ -41,7 +44,7 @@ export default function CardTaskPage() {
           bg="white"
           _dark={{ bg: "gray.800" }}
           borderBottom="1px solid"
-          borderColor="gray.200"
+          borderColor={headerBorderColor}
           boxShadow="sm"
           zIndex={1}
         >

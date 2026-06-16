@@ -25,8 +25,11 @@ import EyeIconOff from "../Icon/EyeIconOff";
 import EyeIconOn from "../Icon/EyeIconOn";
 import { useToast } from "@chakra-ui/react";
 import LoginIcon from "../Icon/LoginIcon";
+import { useAuthPageColors } from "../hooks/useAuthPageColors";
+import AuthThemeToggle from "../components/ui/AuthThemeToggle";
 
 export default function Login() {
+  const colors = useAuthPageColors();
   const [loginMutation, { isLoading }] = useLoginMutation();
   const [passwordShow, setPasswordShow] = useState(false);
   const navigate = useNavigate();
@@ -77,11 +80,12 @@ export default function Login() {
       minH="100vh"
       overflow="hidden"
     >
+      <AuthThemeToggle />
       {isLoading && (
         <Box
           position="fixed"
           inset={0}
-          bg="rgba(255, 255, 255, 0.8)"
+          bg={colors.overlayBg}
           zIndex={9999}
           display="flex"
           alignItems="center"
@@ -101,7 +105,7 @@ export default function Login() {
         py={{ base: 8, md: 0 }}
         overflowY="auto"
         minH="100vh"
-        bg="white"
+        bg={colors.panelBg}
       >
         {/* Заголовок */}
         <Box
@@ -119,13 +123,17 @@ export default function Login() {
             justifyContent={{ base: "center", md: "flex-start" }}
           >
             <Image src="/icon.png" objectFit="contain" boxSize={8} />
-            <Heading fontWeight="400" fontSize={{ base: "2xl", md: "3xl" }}>
+            <Heading
+              fontWeight="400"
+              fontSize={{ base: "2xl", md: "3xl" }}
+              color={colors.headingColor}
+            >
               TeamFlow
             </Heading>
           </Box>
           <Text
             fontSize="lg"
-            color="gray.600"
+            color={colors.mutedTextColor}
             textAlign={{ base: "center", md: "left" }}
             maxW="24rem"
           >
@@ -137,7 +145,7 @@ export default function Login() {
         <Box as="form" onSubmit={handleSubmit} w="full" maxW="sm">
           <VStack spacing={4} align="stretch">
             <FormControl>
-              <FormLabel color="black">Логин:</FormLabel>
+              <FormLabel color={colors.labelColor}>Логин:</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none">
                   <LoginIcon />
@@ -153,7 +161,7 @@ export default function Login() {
             </FormControl>
 
             <FormControl>
-              <FormLabel color="black">Пароль:</FormLabel>
+              <FormLabel color={colors.labelColor}>Пароль:</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none">
                   <LockIcon />
@@ -190,7 +198,7 @@ export default function Login() {
             >
               <Flex align="center" gap={2}>
                 <Checkbox borderRadius="md" />
-                <FormLabel m={0} fontSize="sm" color="gray.700">
+                <FormLabel m={0} fontSize="sm" color={colors.secondaryLabelColor}>
                   Запомнить меня
                 </FormLabel>
               </Flex>
@@ -251,7 +259,7 @@ export default function Login() {
         h="100vh"
       >
         <Image src="/bgl.png" h="100vh" w="full" objectFit="cover" />
-        <Box position="absolute" inset={0} bg="white" opacity={0.3} />
+        <Box position="absolute" inset={0} bg={colors.imageOverlayBg} opacity={0.3} />
       </Box>
     </Grid>
   );

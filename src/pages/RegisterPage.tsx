@@ -26,8 +26,11 @@ import EmailIcon from "../Icon/EmailIcon";
 import type { Profile } from "../types/ProfileType";
 import { useSendEmailMutation } from "../api/AuthApi";
 import { useAddUserMutation } from "../api/ProfileApi";
+import { useAuthPageColors } from "../hooks/useAuthPageColors";
+import AuthThemeToggle from "../components/ui/AuthThemeToggle";
 
 export default function Register() {
+  const colors = useAuthPageColors();
   const [add] = useAddUserMutation();
   const [sendemail, { isLoading }] = useSendEmailMutation();
   const toast = useToast();
@@ -76,12 +79,13 @@ export default function Register() {
       minH="100vh"
       overflow="hidden"
     >
+      <AuthThemeToggle />
       {/* Оверлей загрузки */}
       {isLoading && (
         <Box
           position="fixed"
           inset={0}
-          bg="rgba(255, 255, 255, 0.8)"
+          bg={colors.overlayBg}
           zIndex={9999}
           display="flex"
           alignItems="center"
@@ -102,7 +106,7 @@ export default function Register() {
         py={{ base: 8, md: 0 }}
         overflowY="auto"
         minH="100vh"
-        bg="white"
+        bg={colors.panelBg}
       >
         {/* Заголовок */}
         <Box
@@ -120,13 +124,17 @@ export default function Register() {
             justifyContent={{ base: "center", md: "flex-start" }}
           >
             <Image src="/icon.png" objectFit="contain" boxSize={8} />
-            <Heading fontWeight="400" fontSize={{ base: "2xl", md: "3xl" }}>
+            <Heading
+              fontWeight="400"
+              fontSize={{ base: "2xl", md: "3xl" }}
+              color={colors.headingColor}
+            >
               TeamFlow
             </Heading>
           </Box>
           <Text
             fontSize="lg"
-            color="gray.600"
+            color={colors.mutedTextColor}
             textAlign={{ base: "center", md: "left" }}
             maxW="24rem"
           >
@@ -136,12 +144,13 @@ export default function Register() {
             fontSize={{ base: "xl", md: "22px" }}
             textAlign={{ base: "center", md: "start" }}
             fontWeight="600"
+            color={colors.titleColor}
           >
             Создание аккаунта
           </Text>
           <Text
             fontSize="sm"
-            color="gray.600"
+            color={colors.mutedTextColor}
             textAlign={{ base: "center", md: "start" }}
           >
             создайте аккаунт для доступа к TeamFlow
@@ -152,7 +161,7 @@ export default function Register() {
         <Box as="form" onSubmit={handleSubmit} w="full" maxW="sm">
           <VStack spacing={4} align="stretch">
             <FormControl>
-              <FormLabel color="gray.700" fontSize="sm">
+              <FormLabel color={colors.secondaryLabelColor} fontSize="sm">
                 Введите ваше ФИО:
               </FormLabel>
               <InputGroup>
@@ -173,7 +182,7 @@ export default function Register() {
             </FormControl>
 
             <FormControl>
-              <FormLabel color="gray.700" fontSize="sm">
+              <FormLabel color={colors.secondaryLabelColor} fontSize="sm">
                 Email:
               </FormLabel>
               <InputGroup>
@@ -194,7 +203,7 @@ export default function Register() {
             </FormControl>
 
             <FormControl>
-              <FormLabel color="gray.700" fontSize="sm">
+              <FormLabel color={colors.secondaryLabelColor} fontSize="sm">
                 Логин:
               </FormLabel>
               <InputGroup>
@@ -215,7 +224,7 @@ export default function Register() {
             </FormControl>
 
             <FormControl>
-              <FormLabel color="gray.700" fontSize="sm">
+              <FormLabel color={colors.secondaryLabelColor} fontSize="sm">
                 Пароль:
               </FormLabel>
               <InputGroup>
@@ -285,7 +294,7 @@ export default function Register() {
         h="100vh"
       >
         <Image src="/bgl.png" h="100vh" w="full" objectFit="cover" />
-        <Box position="absolute" inset={0} bg="white" opacity={0.3} />
+        <Box position="absolute" inset={0} bg={colors.imageOverlayBg} opacity={0.3} />
       </Box>
     </Grid>
   );

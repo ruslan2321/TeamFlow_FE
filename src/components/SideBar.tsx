@@ -55,6 +55,7 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
   const subtextColor = useColorModeValue("gray.500", "gray.400");
   const themeHoverBg = useColorModeValue("blue.50", "blue.900/20");
   const logoutHoverBg = useColorModeValue("red.50", "red.900/20");
+  const navHoverColor = useColorModeValue("blue.600", "blue.300");
 
   const handleNavClick = () => onClose?.();
 
@@ -107,7 +108,7 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
                   bg={isActive ? bgActive : "transparent"}
                   color={isActive ? colorActive : "gray.600"}
                   _dark={{ color: isActive ? colorActive : "gray.400" }}
-                  _hover={{ bg: bgHover, color: "blue.600" }}
+                  _hover={{ bg: bgHover, color: navHoverColor }}
                   transition="all 0.15s ease"
                   borderLeft="3px solid"
                   borderColor={isActive ? "blue.500" : "transparent"}
@@ -216,6 +217,7 @@ export default function SideBar() {
             icon={<FiMenu />}
             variant="ghost"
             size="md"
+            color={mobileTextColor}
             onClick={onOpen}
             minW="44px"
             minH="44px"
