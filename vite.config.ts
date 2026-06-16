@@ -27,22 +27,6 @@ export default defineConfig({
             return "chakra";
           }
 
-          if (id.includes("react-router") || id.includes("@remix-run")) {
-            return "router";
-          }
-
-          if (
-            id.includes("@reduxjs/toolkit") ||
-            id.includes("react-redux") ||
-            id.includes("redux")
-          ) {
-            return "redux";
-          }
-
-          if (id.includes("react-dom") || id.includes("/react/")) {
-            return "react";
-          }
-
           return "vendor";
         },
       },
