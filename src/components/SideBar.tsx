@@ -172,9 +172,18 @@ const SidebarContent = ({ onClose }: { onClose?: () => void }) => {
 
 export default function SideBar() {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const navigate = useNavigate();
   const userId = getCurrentUserId();
   const mobileBorderColor = useColorModeValue("gray.200", "gray.600");
   const mobileTextColor = useColorModeValue("gray.800", "gray.200");
+  const logoutHoverBg = useColorModeValue("red.50", "red.900/20");
+  const logoutIconColor = useColorModeValue("gray.500", "gray.400");
+
+  const handleMobileLogout = () => {
+    clearAuthSession();
+    navigate("/");
+    onClose();
+  };
 
   return (
     <>
@@ -211,6 +220,19 @@ export default function SideBar() {
             <Box display={{ base: "block", md: "none" }}>
               <ProfileInfo id={userId} compact />
             </Box>
+          ) : null}
+          {userId != null ? (
+            <IconButton
+              aria-label="Выйти"
+              icon={<FiLogOut />}
+              variant="ghost"
+              size="md"
+              color={logoutIconColor}
+              onClick={handleMobileLogout}
+              _hover={{ color: "red.500", bg: logoutHoverBg }}
+              minW="44px"
+              minH="44px"
+            />
           ) : null}
           <IconButton
             aria-label="Открыть меню"

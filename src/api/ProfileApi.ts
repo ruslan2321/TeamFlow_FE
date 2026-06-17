@@ -11,6 +11,13 @@ import { extractAvatarFromPayload } from "../utils/avatar.utils";
 
 type UpdateProfilePayload = Partial<Omit<Profile, "id" | "login" | "password">>;
 
+export type AddUserPayload = {
+  name: string;
+  email: string;
+  login: string;
+  password: string;
+};
+
 type UpdateProfileResponse = {
   message?: string;
   user?: Profile;
@@ -109,7 +116,7 @@ export const ProfileApi = createApi({
       invalidatesTags: ["Profile"],
     }),
 
-    addUser: builder.mutation<Profile | void, Omit<Profile, "id">>({
+    addUser: builder.mutation<Profile | void, AddUserPayload>({
       query: (addUser) => ({
         url: "add_user",
         method: "POST",

@@ -1,9 +1,12 @@
 import {
+  Alert,
+  AlertIcon,
   Box,
   Button,
   Checkbox,
   Flex,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Grid,
   Heading,
@@ -27,6 +30,13 @@ import { useToast } from "@chakra-ui/react";
 import LoginIcon from "../Icon/LoginIcon";
 import { useAuthPageColors } from "../hooks/useAuthPageColors";
 import AuthThemeToggle from "../components/ui/AuthThemeToggle";
+import {
+  hasFormErrors,
+  mapLoginApiErrors,
+  validateLogin,
+  type FormErrors,
+  type LoginField,
+} from "../utils/auth.validation";
 
 export default function Login() {
   const colors = useAuthPageColors();
@@ -38,17 +48,53 @@ export default function Login() {
     login: "",
     password: "",
   });
+  const [errors, setErrors] = useState<FormErrors<LoginField>>({});
+  const [touched, setTouched] = useState<Partial<Record<LoginField, boolean>>>(
+    {},
+  );
 
   const togglePasswordVisibility = () => setPasswordShow((prev) => !prev);
 
+  const showError = (field: LoginField) =>
+    Boolean(touched[field] && errors[field]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const field = name as LoginField;
+
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+    if (touched[field]) {
+      const next = validateLogin({ ...formData, [field]: value });
+      setErrors((prev) => ({
+        ...prev,
+        [field]: next[field],
+        form: undefined,
+      }));
+    }
+  };
+
+  const handleBlur = (field: LoginField) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const next = validateLogin(formData);
+    setErrors((prev) => ({ ...prev, [field]: next[field] }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationErrors = validateLogin(formData);
+    setErrors(validationErrors);
+    setTouched({ login: true, password: true });
+
+    if (hasFormErrors(validationErrors)) return;
+
     try {
-      const res = await loginMutation(formData).unwrap();
+      const res = await loginMutation({
+        login: formData.login.trim(),
+        password: formData.password,
+      }).unwrap();
+
       localStorage.setItem("authToken", res.token);
       if (res.token) {
         const { token, ...userData } = res;
@@ -62,13 +108,15 @@ export default function Login() {
         });
         navigate("/task");
       }
-    } catch {
+    } catch (err) {
+      const apiErrors = mapLoginApiErrors(err);
+      setErrors(apiErrors);
       toast({
         title: "Ошибка входа",
         position: "top",
-        description: "Неверный логин или пароль",
+        description: apiErrors.form ?? "Неверный логин или пароль",
         status: "error",
-        duration: 3000,
+        duration: 4000,
         isClosable: true,
       });
     }
@@ -94,7 +142,6 @@ export default function Login() {
           <Spinner color="#0099FF" size="lg" />
         </Box>
       )}
-      {/* Левая колонка: Форма */}
       <Box
         display="flex"
         flexDirection="column"
@@ -107,7 +154,6 @@ export default function Login() {
         minH="100vh"
         bg={colors.panelBg}
       >
-        {/* Заголовок */}
         <Box
           display="flex"
           flexDirection="column"
@@ -141,10 +187,16 @@ export default function Login() {
           </Text>
         </Box>
 
-        {/* Форма */}
-        <Box as="form" onSubmit={handleSubmit} w="full" maxW="sm">
+        <Box as="form" onSubmit={handleSubmit} w="full" maxW="sm" noValidate>
           <VStack spacing={4} align="stretch">
-            <FormControl>
+            {errors.form && (
+              <Alert status="error" borderRadius="md" fontSize="sm">
+                <AlertIcon />
+                {errors.form}
+              </Alert>
+            )}
+
+            <FormControl isInvalid={showError("login")} isRequired>
               <FormLabel color={colors.labelColor}>Логин:</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none">
@@ -154,13 +206,16 @@ export default function Login() {
                   name="login"
                   value={formData.login}
                   onChange={handleChange}
+                  onBlur={() => handleBlur("login")}
                   placeholder="Введите логин"
                   size="lg"
+                  autoComplete="username"
                 />
               </InputGroup>
+              <FormErrorMessage>{errors.login}</FormErrorMessage>
             </FormControl>
 
-            <FormControl>
+            <FormControl isInvalid={showError("password")} isRequired>
               <FormLabel color={colors.labelColor}>Пароль:</FormLabel>
               <InputGroup>
                 <InputLeftElement pointerEvents="none">
@@ -170,9 +225,11 @@ export default function Login() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={() => handleBlur("password")}
                   type={passwordShow ? "text" : "password"}
                   placeholder="Введите пароль"
                   size="lg"
+                  autoComplete="current-password"
                 />
                 <InputRightElement>
                   <Button
@@ -182,11 +239,13 @@ export default function Login() {
                     minW="auto"
                     onClick={togglePasswordVisibility}
                     _hover={{ bg: "transparent" }}
+                    type="button"
                   >
                     {passwordShow ? <EyeIconOff /> : <EyeIconOn />}
                   </Button>
                 </InputRightElement>
               </InputGroup>
+              <FormErrorMessage>{errors.password}</FormErrorMessage>
             </FormControl>
 
             <Flex
@@ -222,6 +281,8 @@ export default function Login() {
               size="lg"
               _hover={{ bg: "#5348d8" }}
               boxShadow="md"
+              isLoading={isLoading}
+              loadingText="Вход..."
             >
               Войти
             </Button>
@@ -252,7 +313,6 @@ export default function Login() {
         </Text>
       </Box>
 
-      {/* Правая колонка: Изображение (скрыто на мобильных) */}
       <Box
         display={{ base: "none", md: "block" }}
         position="relative"

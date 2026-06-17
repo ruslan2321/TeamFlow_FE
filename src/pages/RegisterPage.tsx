@@ -1,7 +1,10 @@
 import {
+  Alert,
+  AlertIcon,
   Box,
   Button,
   FormControl,
+  FormErrorMessage,
   FormLabel,
   Grid,
   Heading,
@@ -23,38 +26,90 @@ import EyeIconOn from "../Icon/EyeIconOn";
 import LoginIcon from "../Icon/LoginIcon";
 import PeopleLoginIcon from "../Icon/PeopleLoginIcon";
 import EmailIcon from "../Icon/EmailIcon";
-import type { Profile } from "../types/ProfileType";
 import { useSendEmailMutation } from "../api/AuthApi";
 import { useAddUserMutation } from "../api/ProfileApi";
 import { useAuthPageColors } from "../hooks/useAuthPageColors";
 import AuthThemeToggle from "../components/ui/AuthThemeToggle";
+import {
+  hasFormErrors,
+  mapRegisterApiErrors,
+  validateRegister,
+  type FormErrors,
+  type RegisterField,
+  type RegisterFormData,
+} from "../utils/auth.validation";
 
 export default function Register() {
   const colors = useAuthPageColors();
-  const [add] = useAddUserMutation();
-  const [sendemail, { isLoading }] = useSendEmailMutation();
+  const [add, { isLoading: isRegistering }] = useAddUserMutation();
+  const [sendemail, { isLoading: isSendingEmail }] = useSendEmailMutation();
   const toast = useToast();
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const navigate = useNavigate();
+  const isLoading = isRegistering || isSendingEmail;
 
-  const [formData, setFormData] = useState<Omit<Profile, "id">>({
-    username: "",
+  const [formData, setFormData] = useState<RegisterFormData>({
+    name: "",
     email: "",
     login: "",
     password: "",
   });
+  const [errors, setErrors] = useState<FormErrors<RegisterField>>({});
+  const [touched, setTouched] = useState<
+    Partial<Record<RegisterField, boolean>>
+  >({});
 
   const togglePasswordVisibility = () => setIsPasswordVisible((prev) => !prev);
 
+  const showError = (field: RegisterField) =>
+    Boolean(touched[field] && errors[field]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    const field = name as RegisterField;
+
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
+    if (touched[field]) {
+      const next = validateRegister({ ...formData, [field]: value });
+      setErrors((prev) => ({
+        ...prev,
+        [field]: next[field],
+        form: undefined,
+      }));
+    }
+  };
+
+  const handleBlur = (field: RegisterField) => {
+    setTouched((prev) => ({ ...prev, [field]: true }));
+    const next = validateRegister(formData);
+    setErrors((prev) => ({ ...prev, [field]: next[field] }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const validationErrors = validateRegister(formData);
+    setErrors(validationErrors);
+    setTouched({
+      name: true,
+      email: true,
+      login: true,
+      password: true,
+    });
+
+    if (hasFormErrors(validationErrors)) return;
+
+    const payload = {
+      name: formData.name.trim(),
+      email: formData.email.trim(),
+      login: formData.login.trim(),
+      password: formData.password,
+    };
+
     try {
-      await add(formData).unwrap();
-      await sendemail({ email: formData.email }).unwrap();
+      await add(payload).unwrap();
+      await sendemail({ email: payload.email }).unwrap();
       toast({
         title: "Аккаунт создан",
         status: "success",
@@ -62,12 +117,14 @@ export default function Register() {
         isClosable: true,
       });
       navigate("/");
-    } catch {
+    } catch (err) {
+      const apiErrors = mapRegisterApiErrors(err);
+      setErrors(apiErrors);
       toast({
         title: "Ошибка регистрации",
-        description: "Пожалуйста, проверьте данные и попробуйте снова",
+        description: apiErrors.form ?? "Проверьте данные формы",
         status: "error",
-        duration: 3000,
+        duration: 4000,
         isClosable: true,
       });
     }
@@ -80,7 +137,6 @@ export default function Register() {
       overflow="hidden"
     >
       <AuthThemeToggle />
-      {/* Оверлей загрузки */}
       {isLoading && (
         <Box
           position="fixed"
@@ -95,7 +151,6 @@ export default function Register() {
         </Box>
       )}
 
-      {/* Левая колонка: Форма */}
       <Box
         display="flex"
         flexDirection="column"
@@ -108,7 +163,6 @@ export default function Register() {
         minH="100vh"
         bg={colors.panelBg}
       >
-        {/* Заголовок */}
         <Box
           display="flex"
           flexDirection="column"
@@ -157,10 +211,16 @@ export default function Register() {
           </Text>
         </Box>
 
-        {/* Форма */}
-        <Box as="form" onSubmit={handleSubmit} w="full" maxW="sm">
+        <Box as="form" onSubmit={handleSubmit} w="full" maxW="sm" noValidate>
           <VStack spacing={4} align="stretch">
-            <FormControl>
+            {errors.form && (
+              <Alert status="error" borderRadius="md" fontSize="sm">
+                <AlertIcon />
+                {errors.form}
+              </Alert>
+            )}
+
+            <FormControl isInvalid={showError("name")} isRequired>
               <FormLabel color={colors.secondaryLabelColor} fontSize="sm">
                 Введите ваше ФИО:
               </FormLabel>
@@ -169,19 +229,20 @@ export default function Register() {
                   <PeopleLoginIcon />
                 </InputLeftElement>
                 <Input
-                  name="username"
-                  value={formData.username}
+                  name="name"
+                  value={formData.name}
                   onChange={handleChange}
+                  onBlur={() => handleBlur("name")}
                   type="text"
                   placeholder="Введите ваше ФИО"
-                  required
                   size="lg"
                   autoComplete="name"
                 />
               </InputGroup>
+              <FormErrorMessage>{errors.name}</FormErrorMessage>
             </FormControl>
 
-            <FormControl>
+            <FormControl isInvalid={showError("email")} isRequired>
               <FormLabel color={colors.secondaryLabelColor} fontSize="sm">
                 Email:
               </FormLabel>
@@ -193,16 +254,17 @@ export default function Register() {
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  onBlur={() => handleBlur("email")}
                   type="email"
                   placeholder="Введите вашу почту"
-                  required
                   size="lg"
                   autoComplete="email"
                 />
               </InputGroup>
+              <FormErrorMessage>{errors.email}</FormErrorMessage>
             </FormControl>
 
-            <FormControl>
+            <FormControl isInvalid={showError("login")} isRequired>
               <FormLabel color={colors.secondaryLabelColor} fontSize="sm">
                 Логин:
               </FormLabel>
@@ -215,15 +277,16 @@ export default function Register() {
                   type="text"
                   value={formData.login}
                   onChange={handleChange}
+                  onBlur={() => handleBlur("login")}
                   placeholder="Введите логин"
-                  required
                   size="lg"
                   autoComplete="username"
                 />
               </InputGroup>
+              <FormErrorMessage>{errors.login}</FormErrorMessage>
             </FormControl>
 
-            <FormControl>
+            <FormControl isInvalid={showError("password")} isRequired>
               <FormLabel color={colors.secondaryLabelColor} fontSize="sm">
                 Пароль:
               </FormLabel>
@@ -235,9 +298,9 @@ export default function Register() {
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  onBlur={() => handleBlur("password")}
                   type={isPasswordVisible ? "text" : "password"}
                   placeholder="Введите пароль"
-                  required
                   size="lg"
                   autoComplete="new-password"
                 />
@@ -249,6 +312,7 @@ export default function Register() {
                     minW="auto"
                     onClick={togglePasswordVisibility}
                     _hover={{ bg: "transparent" }}
+                    type="button"
                     aria-label={
                       isPasswordVisible ? "Скрыть пароль" : "Показать пароль"
                     }
@@ -257,6 +321,7 @@ export default function Register() {
                   </Button>
                 </InputRightElement>
               </InputGroup>
+              <FormErrorMessage>{errors.password}</FormErrorMessage>
             </FormControl>
 
             <Button
@@ -268,6 +333,8 @@ export default function Register() {
               _hover={{ bg: "#5348d8" }}
               boxShadow="md"
               mt={2}
+              isLoading={isLoading}
+              loadingText="Регистрация..."
             >
               Зарегистрироваться
             </Button>
@@ -287,7 +354,6 @@ export default function Register() {
         </Text>
       </Box>
 
-      {/* Правая колонка: Изображение (скрыто на мобильных) */}
       <Box
         display={{ base: "none", md: "block" }}
         position="relative"
